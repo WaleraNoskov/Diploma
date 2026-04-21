@@ -1,4 +1,6 @@
-﻿namespace ImageAnalysis.Domain.ValueObjects;
+﻿using System.Globalization;
+
+namespace ImageAnalysis.Domain.ValueObjects;
 
 /// <summary>
 /// Расстояние между двумя точками измерения (в пикселях).
@@ -16,5 +18,5 @@ public sealed record Distance
         return new Distance(value);
     }
  
-    public override string ToString() => $"{Pixels:F2} px";
+    public override string ToString() => Pixels.ToString("F2", CultureInfo.InvariantCulture) + " px";
 }

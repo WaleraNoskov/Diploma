@@ -14,15 +14,15 @@ public sealed class OperationHistory
     public IReadOnlyCollection<ProcessingOperation> Applied => _applied.ToList().AsReadOnly();
     public bool CanUndo => _applied.Count > 0;
     public bool CanRedo => _reverted.Count > 0;
- 
-    internal void Push(ProcessingOperation operation)
+
+    public void Push(ProcessingOperation operation)
     {
         operation.MarkApplied();
         _applied.Push(operation);
         _reverted.Clear(); // Новая операция сбрасывает redo-стек
     }
- 
-    internal ProcessingOperation? PopForUndo()
+
+    public ProcessingOperation? PopForUndo()
     {
         if (!CanUndo) return null;
         var op = _applied.Pop();
@@ -39,8 +39,8 @@ public sealed class OperationHistory
         _applied.Push(op);
         return op;
     }
- 
-    internal void Clear()
+
+    public void Clear()
     {
         _applied.Clear();
         _reverted.Clear();
