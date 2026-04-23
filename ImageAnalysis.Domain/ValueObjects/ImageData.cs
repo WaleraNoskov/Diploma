@@ -6,16 +6,16 @@
 /// </summary>
 public sealed class ImageData
 {
-    public byte[] Bytes { get; }
+    public Guid ImageId { get; }
     public ImageDimensions Dimensions { get; }
     public string Format { get; }   // "PNG", "JPEG", "BMP", ...
  
-    public ImageData(byte[] bytes, ImageDimensions dimensions, string format)
+    public ImageData(Guid imageId, ImageDimensions dimensions, string format)
     {
-        if (bytes is null || bytes.Length == 0)
-            throw new ArgumentException("Данные изображения не могут быть пустыми.", nameof(bytes));
+        if (imageId == Guid.Empty)
+            throw new ArgumentException("Данные изображения не могут быть пустыми.", nameof(imageId));
  
-        Bytes = bytes;
+        ImageId = imageId;
         Dimensions = dimensions;
         Format = format;
     }

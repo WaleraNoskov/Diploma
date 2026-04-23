@@ -8,12 +8,12 @@ namespace ImageAnalysis.Domain.UnitTests.Infrastructure;
 public class ImageDataMother
 {
     public static ImageData Default() =>
-        new(bytes: new byte[100],
+        new(imageId: Guid.NewGuid(),
             dimensions: new ImageDimensions(TestConstants.DefaultImageWidth, TestConstants.DefaultImageHeight),
             format: TestConstants.DefaultFormat);
 
     public static ImageData WithDimensions(int width, int height) =>
-        new(bytes: new byte[100],
+        new(imageId: Guid.NewGuid(),
             dimensions: new ImageDimensions(width, height),
             format: TestConstants.DefaultFormat);
 
