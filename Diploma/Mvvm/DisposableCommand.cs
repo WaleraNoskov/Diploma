@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace Diploma.Mvvm.Command.Base;
+namespace Diploma.Mvvm;
 
 /// <summary>
 /// Represents base MVVM command implementation as a disposable object.

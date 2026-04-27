@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using Diploma.ViewModel;
 using ImageAnalysis.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,8 +17,14 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton<MainWindow>();
         services.AddImageProcessingApplication(typeof(DependencyInjection).Assembly);
+
+        services.AddTransient<ImageCanvasViewModel>();
+        services.AddTransient<OperationHistoryViewModel>();
+        services.AddTransient<ParametersPanelViewModel>();
+        services.AddTransient<StatusBarViewModel>();
+        services.AddTransient<MainViewModel>();
+        services.AddSingleton<MainWindow>();
     }
 
     protected override async void OnStartup(StartupEventArgs e)

@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace Diploma.Mvvm.Command.Base;
+namespace Diploma.Mvvm;
 
 /// <summary>
 /// Represents the asynchronously <see cref="ICommand"/>.

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
-using Diploma.Mvvm.Command.Base;
 
-namespace Diploma.Mvvm.Command;
+namespace Diploma.Mvvm;
 
 /// <summary>
 /// Represents asynchronous MVVM relay command implementation.

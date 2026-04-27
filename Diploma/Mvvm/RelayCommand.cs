@@ -1,6 +1,4 @@
-﻿using Diploma.Mvvm.Command.Base;
-
-namespace Diploma.Mvvm.Command;
+﻿namespace Diploma.Mvvm;
 
 /// <summary>
 /// Represents MVVM relay command implementation.

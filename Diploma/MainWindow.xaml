@@ -1,12 +1,710 @@
-﻿<Window x:Class="Diploma.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Diploma"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+﻿<Window
+    Background="#FF1E1E2E"
+    Height="820"
+    MinHeight="600"
+    MinWidth="900"
+    Title="MainWindow"
+    Width="1280"
+    d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
+    mc:Ignorable="d"
+    x:Class="Diploma.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:infrastructure="clr-namespace:Diploma.Infrastructure"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ov="clr-namespace:Diploma.Model"
+    xmlns:viewModel="clr-namespace:Diploma.ViewModel"
+    xmlns:vm="clr-namespace:ImageAnalysis.Application.Dtos;assembly=ImageAnalysis.Application"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  ═══════════════════════ Resources ═══════════════════════  -->
+    <Window.Resources>
+        <infrastructure:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <infrastructure:NullToVisibilityConverter x:Key="NullToVis" />
+        <infrastructure:ZoomPanTransformConverter x:Key="ZoomPan" />
+        <infrastructure:PointsToPointCollectionConverter x:Key="PointsToPc" />
 
-    </Grid>
+        <!--  Colour palette  -->
+        <SolidColorBrush Color="#FF1E1E2E" x:Key="Surface0" />
+        <SolidColorBrush Color="#FF2A2A3E" x:Key="Surface1" />
+        <SolidColorBrush Color="#FF313145" x:Key="Surface2" />
+        <SolidColorBrush Color="#FF00BCFF" x:Key="Accent" />
+        <SolidColorBrush Color="#FFFFA500" x:Key="AccentAlt" />
+        <SolidColorBrush Color="#FFCDD6F4" x:Key="TextPrim" />
+        <SolidColorBrush Color="#FF7F849C" x:Key="TextSub" />
+        <SolidColorBrush Color="#FFA6E3A1" x:Key="Success" />
+        <SolidColorBrush Color="#FFF38BA8" x:Key="Error" />
+
+        <!--  ── Base button style ──  -->
+        <Style TargetType="Button" x:Key="ToolButton">
+            <Setter Property="Background" Value="{StaticResource Surface2}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrim}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource Surface1}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource Accent}" />
+                                <Setter Property="Foreground" Value="{StaticResource Surface0}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  Active mode toggle button  -->
+        <Style
+            BasedOn="{StaticResource ToolButton}"
+            TargetType="Button"
+            x:Key="ModeButton">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Accent}" />
+                    <Setter Property="Foreground" Value="{StaticResource Surface0}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  Separator  -->
+        <Style TargetType="Separator" x:Key="ToolSep">
+            <Setter Property="Background" Value="{StaticResource Surface2}" />
+            <Setter Property="Width" Value="1" />
+            <Setter Property="Margin" Value="6,4" />
+        </Style>
+
+        <!--  Slider  -->
+        <Style TargetType="Slider">
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+
+        <!--  Labels  -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrim}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="SectionHeader">
+            <Setter Property="Foreground" Value="{StaticResource TextSub}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,8,0,4" />
+            <Setter Property="Text" Value="{Binding}" />
+        </Style>
+    </Window.Resources>
+
+    <!--  ═══════════════════════ Layout ═══════════════════════  -->
+    <DockPanel>
+
+        <!--  ══ TOOLBAR (top) ══════════════════════════════════════════════  -->
+        <Border
+            Background="{StaticResource Surface1}"
+            BorderBrush="{StaticResource Surface2}"
+            BorderThickness="0,0,0,1"
+            DockPanel.Dock="Top"
+            Padding="8,4">
+            <ToolBar Background="Transparent" OverflowMode="Never">
+
+                <!--  File group  -->
+                <Button
+                    Command="{Binding OpenImageCommand}"
+                    Content="📂 Открыть"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SaveResultCommand}"
+                    Content="💾 Сохранить"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding ResetSessionCommand}"
+                    Content="↺ Сбросить"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding UndoCommand}"
+                    Content="⎌ Отменить"
+                    Style="{StaticResource ToolButton}" />
+
+                <Separator Style="{StaticResource ToolSep}" />
+
+                <!--  Processing group  -->
+                <TextBlock
+                    Foreground="{StaticResource TextSub}"
+                    Margin="4,0"
+                    Text="Обработка:"
+                    VerticalAlignment="Center" />
+                <Button
+                    Command="{Binding SelectGrayscaleCommand}"
+                    Content="Серый"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SelectMedianFilterCommand}"
+                    Content="Медиана"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SelectGaussianBlurCommand}"
+                    Content="Гаусс"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SelectBrightnessCommand}"
+                    Content="Яркость"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SelectContrastCommand}"
+                    Content="Контраст"
+                    Style="{StaticResource ToolButton}" />
+                <Button
+                    Command="{Binding SelectThresholdingCommand}"
+                    Content="Порог"
+                    Style="{StaticResource ToolButton}" />
+
+                <Separator Style="{StaticResource ToolSep}" />
+
+                <!--  Analysis group  -->
+                <TextBlock
+                    Foreground="{StaticResource TextSub}"
+                    Margin="4,0"
+                    Text="Анализ:"
+                    VerticalAlignment="Center" />
+                <Button
+                    Command="{Binding SelectContourDetectionCommand}"
+                    Content="Контуры"
+                    Style="{StaticResource ToolButton}" />
+
+                <!--  Mode toggles  -->
+                <RadioButton
+                    Command="{Binding SetRoiModeCommand}"
+                    Content="🔲 ROI"
+                    Cursor="Hand"
+                    Foreground="{StaticResource TextPrim}"
+                    GroupName="InteractionMode"
+                    IsChecked="{Binding IsRoiMode}"
+                    Margin="2,0"
+                    VerticalAlignment="Center" />
+                <RadioButton
+                    Command="{Binding SetMeasureModeCommand}"
+                    Content="📏 Линейка"
+                    Cursor="Hand"
+                    Foreground="{StaticResource TextPrim}"
+                    GroupName="InteractionMode"
+                    IsChecked="{Binding IsMeasureMode}"
+                    Margin="2,0"
+                    VerticalAlignment="Center" />
+                <RadioButton
+                    Command="{Binding SetViewModeCommand}"
+                    Content="🖐 Просмотр"
+                    Cursor="Hand"
+                    Foreground="{StaticResource TextPrim}"
+                    GroupName="InteractionMode"
+                    IsChecked="{Binding IsViewMode}"
+                    Margin="2,0"
+                    VerticalAlignment="Center" />
+
+                <Separator Style="{StaticResource ToolSep}" />
+
+                <!--  Zoom  -->
+                <Button
+                    Command="{Binding ZoomInCommand}"
+                    Content="+"
+                    Style="{StaticResource ToolButton}"
+                    Width="28" />
+                <Button
+                    Command="{Binding ZoomOutCommand}"
+                    Content="-"
+                    Style="{StaticResource ToolButton}"
+                    Width="28" />
+                <Button
+                    Command="{Binding ResetZoomCommand}"
+                    Content="1:1"
+                    Style="{StaticResource ToolButton}" />
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{StaticResource Accent}"
+                    Margin="6,0"
+                    MinWidth="42"
+                    Text="{Binding Canvas.ZoomPercent}"
+                    VerticalAlignment="Center" />
+            </ToolBar>
+        </Border>
+
+        <!--  ══ STATUS BAR (bottom) ════════════════════════════════════════  -->
+        <Border
+            Background="{StaticResource Surface1}"
+            BorderBrush="{StaticResource Surface2}"
+            BorderThickness="0,1,0,0"
+            DockPanel.Dock="Bottom"
+            Padding="12,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{StaticResource TextPrim}"
+                    Grid.Column="0"
+                    Text="{Binding StatusBar.Message}" />
+
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{StaticResource TextSub}"
+                    Grid.Column="1"
+                    Margin="20,0"
+                    Text="{Binding StatusBar.SessionInfo}" />
+
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{StaticResource Accent}"
+                    Grid.Column="2"
+                    MinWidth="120"
+                    Text="{Binding Canvas.CursorPositionText}"
+                    TextAlignment="Right" />
+            </Grid>
+        </Border>
+
+        <!--  ══ MAIN CONTENT AREA ══════════════════════════════════════════  -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <!--  Canvas  -->
+                <ColumnDefinition Width="5" />
+                <!--  Splitter  -->
+                <ColumnDefinition
+                    MaxWidth="420"
+                    MinWidth="220"
+                    Width="280" />
+                <!--  Parameters + History  -->
+            </Grid.ColumnDefinitions>
+
+            <!--  ── Image Canvas ───────────────────────────────────────────  -->
+            <Border
+                Background="#FF121220"
+                ClipToBounds="True"
+                Grid.Column="0"
+                x:Name="CanvasBorder">
+                <StackPanel>
+
+                    <!--  Empty state hint  -->
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="{StaticResource TextSub}"
+                        HorizontalAlignment="Center"
+                        Text="Откройте изображение (Ctrl+O)"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding Canvas.HasImage, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+
+                    <!--  Image + overlays container  -->
+                    <Canvas
+                        HorizontalAlignment="Left"
+                        MouseDown="ImageCanvas_MouseDown"
+                        MouseMove="ImageCanvas_MouseMove"
+                        MouseUp="ImageCanvas_MouseUp"
+                        MouseWheel="ImageCanvas_MouseWheel"
+                        VerticalAlignment="Top"
+                        Visibility="{Binding Canvas.HasImage, Converter={StaticResource BoolToVis}}"
+                        x:Name="ImageCanvas">
+
+                        <!--  Transform group: zoom + pan applied to everything  -->
+                        <Canvas.RenderTransform>
+                            <MultiBinding Converter="{StaticResource ZoomPan}">
+                                <Binding Path="Canvas.ZoomLevel" />
+                                <Binding Path="Canvas.PanOffsetX" />
+                                <Binding Path="Canvas.PanOffsetY" />
+                            </MultiBinding>
+                        </Canvas.RenderTransform>
+
+                        <!--  Displayed image  -->
+                        <Image
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="{Binding Canvas.ImageSource}"
+                            Stretch="None" />
+
+                        <!--  ROI overlays  -->
+                        <ItemsControl ItemsSource="{Binding Canvas.RoiOverlays}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type ov:RoiOverlayItem}">
+                                    <Rectangle
+                                        Canvas.Left="{Binding TopLeft.X}"
+                                        Canvas.Top="{Binding TopLeft.Y}"
+                                        Fill="Transparent"
+                                        Height="{Binding Height}"
+                                        Stroke="{Binding Stroke}"
+                                        StrokeDashArray="6,3"
+                                        StrokeThickness="1.5"
+                                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}"
+                                        Width="{Binding Width}">
+                                        <Rectangle.ToolTip>
+                                            <TextBlock Text="{Binding Label}" />
+                                        </Rectangle.ToolTip>
+                                    </Rectangle>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  Measurement overlays  -->
+                        <ItemsControl ItemsSource="{Binding Canvas.MeasurementOverlays}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type ov:MeasurementOverlayItem}">
+                                    <Canvas>
+                                        <Line
+                                            Stroke="{StaticResource AccentAlt}"
+                                            StrokeThickness="1.5"
+                                            X1="{Binding From.X}"
+                                            X2="{Binding To.X}"
+                                            Y1="{Binding From.Y}"
+                                            Y2="{Binding To.Y}" />
+                                        <!--  Endpoint dots  -->
+                                        <Ellipse
+                                            Canvas.Left="{Binding From.X}"
+                                            Canvas.Top="{Binding From.Y}"
+                                            Fill="{StaticResource AccentAlt}"
+                                            Height="6"
+                                            Margin="-3,-3,0,0"
+                                            Width="6" />
+                                        <Ellipse
+                                            Canvas.Left="{Binding To.X}"
+                                            Canvas.Top="{Binding To.Y}"
+                                            Fill="{StaticResource AccentAlt}"
+                                            Height="6"
+                                            Margin="-3,-3,0,0"
+                                            Width="6" />
+                                        <!--  Distance label  -->
+                                        <TextBlock
+                                            Background="#88121220"
+                                            Canvas.Left="{Binding LabelPosition.X}"
+                                            Canvas.Top="{Binding LabelPosition.Y}"
+                                            FontSize="10"
+                                            Foreground="{StaticResource AccentAlt}"
+                                            Padding="2,1"
+                                            Text="{Binding DisplayText}" />
+                                    </Canvas>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  Contour overlays  -->
+                        <ItemsControl ItemsSource="{Binding Canvas.ContourOverlays}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type ov:ContourOverlayItem}">
+                                    <Polygon
+                                        Fill="Transparent"
+                                        Points="{Binding Points, Converter={StaticResource PointsToPc}}"
+                                        Stroke="{Binding Stroke}"
+                                        StrokeThickness="{Binding StrokeThickness}"
+                                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!--  Draft overlay (rubber-band ROI or measurement line)  -->
+                        <Canvas DataContext="{Binding Canvas.DraftOverlay}" Visibility="{Binding Converter={StaticResource NullToVis}}">
+                            <!--  ROI draft  -->
+                            <Rectangle
+                                Canvas.Left="{Binding ToRect.X}"
+                                Canvas.Top="{Binding ToRect.Y}"
+                                Fill="#220090FF"
+                                Height="{Binding ToRect.Height}"
+                                Stroke="{StaticResource Accent}"
+                                StrokeDashArray="4,2"
+                                StrokeThickness="1"
+                                Visibility="{Binding IsRectangle, Converter={StaticResource BoolToVis}}"
+                                Width="{Binding ToRect.Width}" />
+                            <!--  Measurement draft line  -->
+                            <Line
+                                Stroke="{StaticResource AccentAlt}"
+                                StrokeDashArray="4,2"
+                                StrokeThickness="1.5"
+                                X1="{Binding StartPoint.X}"
+                                X2="{Binding EndPoint.X}"
+                                Y1="{Binding StartPoint.Y}"
+                                Y2="{Binding EndPoint.Y}">
+                                <Line.Visibility>
+                                    <Binding
+                                        Converter="{StaticResource BoolToVis}"
+                                        ConverterParameter="Invert"
+                                        Path="IsRectangle" />
+                                </Line.Visibility>
+                            </Line>
+                        </Canvas>
+
+                    </Canvas>
+                </StackPanel>
+            </Border>
+
+            <!--  ── Grid Splitter ──────────────────────────────────────────  -->
+            <GridSplitter
+                Background="{StaticResource Surface2}"
+                Cursor="SizeWE"
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                Width="5" />
+
+            <!--  ── Right Panel ─────────────────────────────────────────────  -->
+            <Grid Background="{StaticResource Surface1}" Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <!--  Parameters  -->
+                    <RowDefinition Height="5" />
+                    <RowDefinition Height="180" />
+                    <!--  History  -->
+                </Grid.RowDefinitions>
+
+                <!--  Parameters Panel  -->
+                <ScrollViewer
+                    Grid.Row="0"
+                    Padding="12"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel DataContext="{Binding Parameters}">
+
+                        <TextBlock
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource Accent}"
+                            Margin="0,0,0,12"
+                            Text="{Binding OperationTitle}" />
+
+                        <!--  Empty hint  -->
+                        <TextBlock
+                            Foreground="{StaticResource TextSub}"
+                            Text="Выберите операцию на панели инструментов"
+                            TextWrapping="Wrap"
+                            Visibility="{Binding HasParameters, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+
+                        <!--  ── MedianFilter ──  -->
+                        <StackPanel Visibility="{Binding IsMedianFilterSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">РАЗМЕР ЯДРА</TextBlock>
+                            <ComboBox
+                                Background="{StaticResource Surface2}"
+                                Foreground="{StaticResource TextPrim}"
+                                ItemsSource="{Binding MedianKernelSizes}"
+                                SelectedItem="{Binding MedianKernelSize}" />
+                        </StackPanel>
+
+                        <!--  ── GaussianBlur ──  -->
+                        <StackPanel Visibility="{Binding IsGaussianBlurSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">РАЗМЕР ЯДРА</TextBlock>
+                            <ComboBox
+                                Background="{StaticResource Surface2}"
+                                Foreground="{StaticResource TextPrim}"
+                                ItemsSource="{Binding GaussKernelSizes}"
+                                SelectedItem="{Binding GaussKernelSize}" />
+                            <TextBlock Style="{StaticResource SectionHeader}">
+                                <Run Text="SIGMA: " />
+                                <Run Text="{Binding GaussSigma, StringFormat=F1}" />
+                            </TextBlock>
+                            <Slider
+                                Maximum="20"
+                                Minimum="0.1"
+                                TickFrequency="0.1"
+                                Value="{Binding GaussSigma}" />
+                        </StackPanel>
+
+                        <!--  ── Brightness ──  -->
+                        <StackPanel Visibility="{Binding IsBrightnessSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">
+                                <Run Text="ЯРКОСТЬ: " />
+                                <Run Text="{Binding BrightnessDeltaText}" />
+                            </TextBlock>
+                            <Slider
+                                Maximum="255"
+                                Minimum="-255"
+                                TickFrequency="1"
+                                Value="{Binding BrightnessDelta}" />
+                        </StackPanel>
+
+                        <!--  ── Contrast ──  -->
+                        <StackPanel Visibility="{Binding IsContrastSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">
+                                <Run Text="КОНТРАСТ: " />
+                                <Run Text="{Binding ContrastFactorText}" />
+                            </TextBlock>
+                            <Slider
+                                Maximum="5.0"
+                                Minimum="0.1"
+                                TickFrequency="0.05"
+                                Value="{Binding ContrastFactor}" />
+                        </StackPanel>
+
+                        <!--  ── Thresholding ──  -->
+                        <StackPanel Visibility="{Binding IsThresholdingSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">РЕЖИМ</TextBlock>
+                            <ComboBox
+                                Background="{StaticResource Surface2}"
+                                Foreground="{StaticResource TextPrim}"
+                                ItemsSource="{Binding ThresholdingModes}"
+                                SelectedItem="{Binding ThreshMode}" />
+                            <TextBlock Style="{StaticResource SectionHeader}">
+                                <Run Text="ПОРОГ: " />
+                                <Run Text="{Binding Threshold}" />
+                            </TextBlock>
+                            <Slider
+                                Maximum="255"
+                                Minimum="0"
+                                TickFrequency="1"
+                                Value="{Binding Threshold}" />
+                        </StackPanel>
+
+                        <!--  ── Contour Detection ──  -->
+                        <StackPanel Visibility="{Binding IsContourDetectionSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Style="{StaticResource SectionHeader}">ФИЛЬТР ПО ПЛОЩАДИ</TextBlock>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="{StaticResource TextSub}"
+                                        Text="Мин." />
+                                    <TextBox
+                                        Background="{StaticResource Surface2}"
+                                        BorderBrush="{StaticResource Surface2}"
+                                        Foreground="{StaticResource TextPrim}"
+                                        Padding="4,3"
+                                        Text="{Binding MinContourArea, TargetNullValue=''}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="{StaticResource TextSub}"
+                                        Text="Макс." />
+                                    <TextBox
+                                        Background="{StaticResource Surface2}"
+                                        BorderBrush="{StaticResource Surface2}"
+                                        Foreground="{StaticResource TextPrim}"
+                                        Padding="4,3"
+                                        Text="{Binding MaxContourArea, TargetNullValue=''}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!--  Apply button (visible when any operation is selected)  -->
+                        <Button
+                            Background="{StaticResource Accent}"
+                            Command="{Binding ApplyCommand}"
+                            Content="Применить"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource Surface0}"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,16,0,0"
+                            Padding="0,10"
+                            Style="{StaticResource ToolButton}"
+                            Visibility="{Binding HasParameters, Converter={StaticResource BoolToVis}}" />
+
+                        <!--  Error message  -->
+                        <TextBlock
+                            FontSize="11"
+                            Foreground="{StaticResource Error}"
+                            Margin="0,8,0,0"
+                            Text="{Binding DataContext.ErrorMessage, RelativeSource={RelativeSource AncestorType=Window}}"
+                            TextWrapping="Wrap"
+                            Visibility="{Binding DataContext.ErrorMessage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource NullToVis}}" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!--  Splitter  -->
+                <GridSplitter
+                    Background="{StaticResource Surface2}"
+                    Grid.Row="1"
+                    Height="5"
+                    HorizontalAlignment="Stretch" />
+
+                <!--  Operation History  -->
+                <Border
+                    BorderBrush="{StaticResource Surface2}"
+                    BorderThickness="0,1,0,0"
+                    Grid.Row="2">
+                    <DockPanel Margin="12,8">
+                        <TextBlock
+                            DockPanel.Dock="Top"
+                            Margin="0,0,0,6"
+                            Style="{StaticResource SectionHeader}"
+                            Text="ИСТОРИЯ ОПЕРАЦИЙ" />
+                        <ListBox
+                            Background="Transparent"
+                            BorderThickness="0"
+                            ItemsSource="{Binding History.Items}"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:OperationHistoryItemDto}">
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            FontSize="11"
+                                            Foreground="{StaticResource TextPrim}"
+                                            Grid.Column="0"
+                                            Text="{Binding Description}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            FontSize="10"
+                                            Foreground="{StaticResource TextSub}"
+                                            Grid.Column="1"
+                                            Margin="8,0,0,0"
+                                            Text="{Binding AppliedAt, StringFormat=HH:mm:ss}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!--  Busy overlay  -->
+        <Grid Background="#AA121220" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar
+                    Background="{StaticResource Surface2}"
+                    BorderThickness="0"
+                    Foreground="{StaticResource Accent}"
+                    Height="4"
+                    IsIndeterminate="True"
+                    Margin="0,0,0,12"
+                    Width="220" />
+                <TextBlock
+                    FontSize="13"
+                    Foreground="{StaticResource Accent}"
+                    HorizontalAlignment="Center"
+                    Text="{Binding BusyMessage}" />
+            </StackPanel>
+        </Grid>
+
+    </DockPanel>
 </Window>
