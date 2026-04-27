@@ -4,6 +4,9 @@ using System.Windows.Media.Imaging;
 using Diploma.Model;
 using Diploma.Mvvm;
 using ImageAnalysis.Application.Commands;
+using ImageAnalysis.Application.Commands.LoadImage;
+using ImageAnalysis.Application.Commands.SelectRoi;
+using ImageAnalysis.Application.Commands.TakeMeasurement;
 using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Queries;
 using ImageAnalysis.Application.Services;
@@ -18,7 +21,6 @@ public sealed class MainViewModel : BaseBusyViewModel
     // Infrastructure
     // -------------------------------------------------------------------------
 
-    private readonly ImageProcessingService _processingService;
     private readonly IDialogService _dialogService;
     private readonly IMediator _mediator;
 
@@ -45,11 +47,9 @@ public sealed class MainViewModel : BaseBusyViewModel
     // -------------------------------------------------------------------------
 
     public MainViewModel(
-        ImageProcessingService processingService,
         IDialogService dialogService,
         IMediator mediator)
     {
-        _processingService = processingService;
         _dialogService = dialogService;
         _mediator = mediator;
 
@@ -188,7 +188,7 @@ public sealed class MainViewModel : BaseBusyViewModel
             var format = Path.GetExtension(path).TrimStart('.').ToUpperInvariant();
             if (format == "JPG") format = "JPEG";
 
-            var result = await _processingService.LoadImageAsync(bytes, format);
+            var result = await _mediator.Send(new LoadImageCommand(bytes, format));
             if (result.IsFailure)
             {
                 _dialogService.ShowError(result.Error.Description);
@@ -232,7 +232,7 @@ public sealed class MainViewModel : BaseBusyViewModel
 
         await RunBusyAsync(async () =>
         {
-            var result = await _processingService.ResetAsync(_currentSessionId.Value);
+            var result = await _mediator.Send(new ResetSessionCommand(_currentSessionId.Value));
             if (result.IsFailure)
             {
                 _dialogService.ShowError(result.Error.Description);
@@ -250,7 +250,7 @@ public sealed class MainViewModel : BaseBusyViewModel
 
         await RunBusyAsync(async () =>
         {
-            var result = await _processingService.UndoAsync(_currentSessionId.Value);
+            var result = await _mediator.Send(new UndoOperationCommand(_currentSessionId.Value));
             if (result.IsFailure)
             {
                 _dialogService.ShowError(result.Error.Description);
@@ -298,9 +298,7 @@ public sealed class MainViewModel : BaseBusyViewModel
 
         await RunBusyAsync(async () =>
         {
-            var result = await _processingService.PrepareAndDetectContoursAsync(
-                _currentSessionId.Value, filter);
-
+            var result = await _mediator.Send(new DetectContoursCommand(_currentSessionId.Value, filter));
             if (result.IsFailure)
             {
                 _dialogService.ShowError(result.Error.Description);
@@ -321,9 +319,7 @@ public sealed class MainViewModel : BaseBusyViewModel
     {
         if (!_currentSessionId.HasValue) return;
 
-        var result = await _processingService.SelectRoiAsync(
-            _currentSessionId.Value, bounds, label: null);
-
+        var result = await _mediator.Send(new SelectRoiCommand(_currentSessionId.Value, bounds));
         if (result.IsFailure)
         {
             _dialogService.ShowError(result.Error.Description);
@@ -339,9 +335,7 @@ public sealed class MainViewModel : BaseBusyViewModel
     {
         if (!_currentSessionId.HasValue) return;
 
-        var result = await _processingService.TakeMeasurementAsync(
-            _currentSessionId.Value, from, to, label: null);
-
+        var result = await _mediator.Send(new TakeMeasurementCommand(_currentSessionId.Value, from, to));
         if (result.IsFailure)
         {
             _dialogService.ShowError(result.Error.Description);
@@ -356,7 +350,7 @@ public sealed class MainViewModel : BaseBusyViewModel
     {
         if (!_currentSessionId.HasValue) return;
 
-        var result = await _processingService.RemoveRoiAsync(_currentSessionId.Value, roiId);
+        var result = await _mediator.Send(new RemoveRoiCommand(_currentSessionId.Value, roiId));
         if (result.IsFailure) _dialogService.ShowError(result.Error.Description);
     }
 
@@ -364,8 +358,7 @@ public sealed class MainViewModel : BaseBusyViewModel
     {
         if (!_currentSessionId.HasValue) return;
 
-        var result = await _processingService
-            .RemoveMeasurementAsync(_currentSessionId.Value, measurementId);
+        var result = await _mediator.Send(new RemoveMeasurementCommand(_currentSessionId.Value, measurementId));
         if (result.IsFailure) _dialogService.ShowError(result.Error.Description);
     }
 

@@ -2,6 +2,7 @@
 using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Services;
 using ImageAnalysis.Application.Utils;
+using ImageAnalysis.Domain.Entities.ProcessingOperations;
 using ImageAnalysis.Domain.ValueObjects;
 using MediatR;
 
@@ -30,6 +31,23 @@ public sealed class DetectContoursCommandHandler(
 
         var bytesResult = await storage.GetAsync(session.CurrentImage!.ImageId, ct);
         if (bytesResult.IsFailure) return bytesResult.Error;
+
+        var grayResult = await processor.ApplyAsync(session.CurrentImage,
+            bytesResult.Value,
+            new GrayscaleOperation(),
+            ct);
+        if (grayResult.IsFailure) return grayResult.Error;
+
+        var gaussianResult = await processor.ApplyAsync(session.CurrentImage,
+            bytesResult.Value,
+            new GaussianBlurOperation(5, 1.5),
+            ct);
+        if (gaussianResult.IsFailure) return gaussianResult.Error;
+
+        var thresholdResult = await processor.ApplyAsync(session.CurrentImage,
+            bytesResult.Value,
+            new ThresholdingOperation(128, ThresholdingMode.Binary),
+            ct);
 
         var detectResult = await processor.DetectContoursAsync(session.CurrentImage, bytesResult.Value, ct);
         if (detectResult.IsFailure) return detectResult.Error;
