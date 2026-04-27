@@ -31,7 +31,7 @@ public sealed class DetectContoursCommandHandler(
         var bytesResult = await storage.GetAsync(session.CurrentImage!.ImageId, ct);
         if (bytesResult.IsFailure) return bytesResult.Error;
 
-        var detectResult = await processor.DetectContoursAsync(bytesResult.Value, ct);
+        var detectResult = await processor.DetectContoursAsync(session.CurrentImage, bytesResult.Value, ct);
         if (detectResult.IsFailure) return detectResult.Error;
 
         if (detectResult.Value.Count == 0) return Error.NoContoursDetected();

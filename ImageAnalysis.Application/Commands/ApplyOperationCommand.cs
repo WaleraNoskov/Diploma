@@ -78,7 +78,7 @@ public sealed class ApplyOperationCommandHandler(
         }
 
         // 4. Apply operation via infrastructure processor
-        var processResult = await processor.ApplyAsync(bytesResult.Value, operation, ct);
+        var processResult = await processor.ApplyAsync(session.CurrentImage, bytesResult.Value, operation, ct);
         if (processResult.IsFailure) return processResult.Error;
 
         // 5. Store processed bytes as a new image blob

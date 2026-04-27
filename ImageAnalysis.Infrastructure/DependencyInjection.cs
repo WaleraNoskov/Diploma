@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventPublisher, MediatRDomainEventPublisher>();
 
         // ---- Application Services -------------------------------------------
+        services.AddTransient<IImageProcessor, OpenCvImageProcessor>();
         services.AddSingleton<ImageProcessingService>();
 
         // NOTE: IImageProcessor is NOT registered here — it lives in a separate

@@ -18,6 +18,7 @@ public interface IImageProcessor
     /// and returns the result bytes in the same format.
     /// </summary>
     Task<Result<byte[]>> ApplyAsync(
+        ImageData imageData,
         byte[] sourceBytes,
         ProcessingOperation operation,
         CancellationToken ct = default);
@@ -27,6 +28,7 @@ public interface IImageProcessor
     /// point collections. Filtering happens in the domain (aggregate).
     /// </summary>
     Task<Result<IReadOnlyList<ContourPoints>>> DetectContoursAsync(
+        ImageData imageData,
         byte[] sourceBytes,
         CancellationToken ct = default);
 

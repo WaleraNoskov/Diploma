@@ -23,6 +23,9 @@ public sealed class Result<T>
         _error = error;
     }
 
+    public static Result<T> Success(T value) => new(value);
+    public static Result<T> Fail(Error error) => new(error);
+    
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
 

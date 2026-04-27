@@ -1,5 +1,4 @@
 ﻿<Window
-    Background="#FF1E1E2E"
     Height="820"
     MinHeight="600"
     MinWidth="900"
@@ -194,7 +193,7 @@
                     Cursor="Hand"
                     Foreground="{StaticResource TextPrim}"
                     GroupName="InteractionMode"
-                    IsChecked="{Binding IsRoiMode}"
+                    IsChecked="{Binding IsRoiMode, Mode=OneWay}"
                     Margin="2,0"
                     VerticalAlignment="Center" />
                 <RadioButton
@@ -203,7 +202,7 @@
                     Cursor="Hand"
                     Foreground="{StaticResource TextPrim}"
                     GroupName="InteractionMode"
-                    IsChecked="{Binding IsMeasureMode}"
+                    IsChecked="{Binding IsMeasureMode, Mode=OneWay}"
                     Margin="2,0"
                     VerticalAlignment="Center" />
                 <RadioButton
@@ -212,7 +211,7 @@
                     Cursor="Hand"
                     Foreground="{StaticResource TextPrim}"
                     GroupName="InteractionMode"
-                    IsChecked="{Binding IsViewMode}"
+                    IsChecked="{Binding IsViewMode, Mode=OneWay}"
                     Margin="2,0"
                     VerticalAlignment="Center" />
 
@@ -687,24 +686,24 @@
             </Grid>
         </Grid>
 
-        <!--  Busy overlay  -->
-        <Grid Background="#AA121220" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <ProgressBar
-                    Background="{StaticResource Surface2}"
-                    BorderThickness="0"
-                    Foreground="{StaticResource Accent}"
-                    Height="4"
-                    IsIndeterminate="True"
-                    Margin="0,0,0,12"
-                    Width="220" />
-                <TextBlock
-                    FontSize="13"
-                    Foreground="{StaticResource Accent}"
-                    HorizontalAlignment="Center"
-                    Text="{Binding BusyMessage}" />
-            </StackPanel>
-        </Grid>
+        <!--  ~1~  Busy overlay  @1@  -->
+        <!-- <Grid Background="#AA121220" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"> -->
+        <!--     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+        <!--  <ProgressBar  -->
+        <!--  Background="{StaticResource Surface2}"  -->
+        <!--  BorderThickness="0"  -->
+        <!--  Foreground="{StaticResource Accent}"  -->
+        <!--  Height="4"  -->
+        <!--  IsIndeterminate="True"  -->
+        <!--  Margin="0,0,0,12"  -->
+        <!--  Width="220" />  -->
+        <!--  <TextBlock  -->
+        <!--  FontSize="13"  -->
+        <!--  Foreground="{StaticResource Accent}"  -->
+        <!--  HorizontalAlignment="Center"  -->
+        <!--  Text="{Binding BusyMessage}" />  -->
+        <!--     </StackPanel> -->
+        <!-- </Grid> -->
 
     </DockPanel>
 </Window>

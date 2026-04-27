@@ -11,6 +11,8 @@
     <ItemGroup>
       <PackageReference Include="MediatR" Version="14.1.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+      <PackageReference Include="OpenCvSharp4.Extensions" Version="4.13.0.20260330" />
+      <PackageReference Include="OpenCvSharp4Extern" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>

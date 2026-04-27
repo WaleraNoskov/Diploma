@@ -109,31 +109,31 @@ public sealed class MainViewModel : BaseBusyViewModel
     // -------------------------------------------------------------------------
 
     // File
-    public ICommand OpenImageCommand { get; private set; } = null!;
-    public ICommand SaveResultCommand { get; private set; } = null!;
-    public ICommand ResetSessionCommand { get; private set; } = null!;
+    public ICommand OpenImageCommand { get; private set; }
+    public ICommand SaveResultCommand { get; private set; }
+    public ICommand ResetSessionCommand { get; private set; }
 
     // Operation shortcuts (set Parameters.SelectedOperation then show panel)
-    public ICommand SelectGrayscaleCommand { get; private set; } = null!;
-    public ICommand SelectMedianFilterCommand { get; private set; } = null!;
-    public ICommand SelectGaussianBlurCommand { get; private set; } = null!;
-    public ICommand SelectBrightnessCommand { get; private set; } = null!;
-    public ICommand SelectContrastCommand { get; private set; } = null!;
-    public ICommand SelectThresholdingCommand { get; private set; } = null!;
+    public ICommand SelectGrayscaleCommand { get; private set; }
+    public ICommand SelectMedianFilterCommand { get; private set; }
+    public ICommand SelectGaussianBlurCommand { get; private set; }
+    public ICommand SelectBrightnessCommand { get; private set; }
+    public ICommand SelectContrastCommand { get; private set; }
+    public ICommand SelectThresholdingCommand { get; private set; }
 
     // Analysis
-    public ICommand SelectContourDetectionCommand { get; private set; } = null!;
-    public ICommand SetRoiModeCommand { get; private set; } = null!;
-    public ICommand SetMeasureModeCommand { get; private set; } = null!;
-    public ICommand SetViewModeCommand { get; private set; } = null!;
+    public ICommand SelectContourDetectionCommand { get; private set; }
+    public ICommand SetRoiModeCommand { get; private set; }
+    public ICommand SetMeasureModeCommand { get; private set; }
+    public ICommand SetViewModeCommand { get; private set; }
 
     // Navigation
-    public ICommand ZoomInCommand { get; private set; } = null!;
-    public ICommand ZoomOutCommand { get; private set; } = null!;
-    public ICommand ResetZoomCommand { get; private set; } = null!;
+    public ICommand ZoomInCommand { get; private set; }
+    public ICommand ZoomOutCommand { get; private set; }
+    public ICommand ResetZoomCommand { get; private set; }
 
     // History
-    public ICommand UndoCommand { get; private set; } = null!;
+    public ICommand UndoCommand { get; private set; }
 
     // -------------------------------------------------------------------------
     // Command initialisation

@@ -1,7 +1,9 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using Diploma.Mvvm;
 using Diploma.ViewModel;
+using ImageAnalysis.Application.Commands.LoadImage;
 using ImageAnalysis.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,8 +19,9 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        services.AddImageProcessingApplication(typeof(DependencyInjection).Assembly);
+        services.AddImageProcessingApplication(typeof(DependencyInjection).Assembly, typeof(LoadImageCommand).Assembly);
 
+        services.AddSingleton<IDialogService, DialogService>();
         services.AddTransient<ImageCanvasViewModel>();
         services.AddTransient<OperationHistoryViewModel>();
         services.AddTransient<ParametersPanelViewModel>();
@@ -35,8 +38,9 @@ public partial class App : Application
 
         await _host.StartAsync();
 
-        // Получаем главное окно из DI-контейнера
+        var mainWindowViewModel = _host.Services.GetRequiredService<MainViewModel>();
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        mainWindow.DataContext = mainWindowViewModel;
         mainWindow.Show();
 
         base.OnStartup(e);

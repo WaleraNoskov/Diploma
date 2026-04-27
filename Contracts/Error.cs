@@ -49,5 +49,8 @@ public sealed record Error(string Code, string Description)
     public static Error RoiNotFound(Guid id) => new("Roi.NotFound", $"Область интереса {id} не найдена.");
     public static Error RoiBoundsOutOfImage() => new("Roi.OutOfBounds", "Границы ROI выходят за пределы изображения.");
 
+    public static Error ImageDimensionsNotDetectoed() => new("ImageDimensions.NotDetected",
+        "Не удалось вычислить разрешение изображения");
+
     public override string ToString() => $"[{Code}] {Description}";
 }
