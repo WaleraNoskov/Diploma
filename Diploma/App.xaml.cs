@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using Diploma.Mvvm;
+using Diploma.ViewModel;
 using ImageAnalysis.Application.Commands.LoadImage;
 using ImageAnalysis.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +19,13 @@ public partial class App : Application
     {
         services.AddImageProcessingApplication(typeof(DependencyInjection).Assembly, typeof(LoadImageCommand).Assembly);
 
+        services.AddTransient<ImageViewerViewModel>();
+        services.AddTransient<ProjectManagementViewModel>();
         
+        services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
+        
+        services.AddSingleton<IDialogService, DialogService>();
     }
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -29,7 +36,9 @@ public partial class App : Application
 
         await _host.StartAsync();
 
+        var mainWindowViewModel = _host.Services.GetRequiredService<MainWindowViewModel>();
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        mainWindow.DataContext = mainWindowViewModel;
         mainWindow.Show();
 
         base.OnStartup(e);

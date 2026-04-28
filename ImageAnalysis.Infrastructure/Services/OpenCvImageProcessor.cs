@@ -68,13 +68,15 @@ public class OpenCvImageProcessor : IImageProcessor
             var width = mat.Width;
             var height = mat.Height;
             var channels = mat.Channels();
-
-            var size = (int)(mat.Total() * mat.ElemSize());
+            var channelSize = mat.ElemSize() / channels;
+            var stride = mat.Step();
+            
+            var size = (int)(mat.Total() * channelSize * channels);
             var raw = new byte[size];
 
             System.Runtime.InteropServices.Marshal.Copy(mat.Data, raw, 0, size);
 
-            var result = new DecodedImage(new ImageDimensions(width, height), channels, raw);
+            var result = new DecodedImage(new ImageDimensions(width, height), channels, channelSize, (int)stride, raw);
             return Task.FromResult<Result<DecodedImage>>(result);
         }
         catch (Exception exception)

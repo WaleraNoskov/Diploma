@@ -1,4 +1,5 @@
-﻿using ImageAnalysis.Application.Dtos;
+﻿using System.Threading.Channels;
+using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Domain.Entities;
 using ImageAnalysis.Domain.Entities.ProcessingOperations;
 using ImageAnalysis.Domain.ValueObjects;
@@ -16,6 +17,9 @@ public static class MappingExtensions
             CurrentImageId: session.CurrentImage?.ImageId,
             OriginalImageId: session.OriginalImage?.ImageId,
             Dimensions: session.CurrentImage?.Dimensions.ToDto(),
+            Channels: session.CurrentImage?.Channels ?? session.OriginalImage?.Channels ?? 0,
+            ChannelSize: session.CurrentImage?.ChannelSize ?? session.OriginalImage?.ChannelSize ?? 0,
+            Stride: session.CurrentImage?.Stride ?? session.OriginalImage?.Stride ?? 0,
             ContourCount: session.Contours.Count,
             MeasurementCount: session.Measurements.Count,
             RegionCount: session.Regions.Count,

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Diploma.Contracts.Events;
 using Diploma.Mvvm;
 using ImageAnalysis.Application.Commands.LoadImage;
 using ImageAnalysis.Domain.Events;
@@ -55,10 +56,15 @@ public class ProjectManagementViewModel : BaseViewModel
 
         var result = await _mediator.Send(new LoadImageCommand(bytes, format));
         if(result.IsFailure)
+        {
             _dialogService.ShowError("Не удалось открыть файл: " + result.Error.Code);
+            return;
+        }
         
         Path.GetFileNameWithoutExtension(path);
         ProjectName = path;
+
+        WeakReferenceMessenger.Default.Send(new NewSessionOpened(result.Value.SessionId));
     }
 
     private bool CanOpenFileCommandExecute(object parameter) => true;

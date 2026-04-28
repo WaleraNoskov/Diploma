@@ -40,7 +40,10 @@ public sealed class UndoOperationCommandHandler(
         var previousImageData = new ImageData(
             previousImageId,
             session.CurrentImage!.Dimensions,
-            session.CurrentImage.Format);
+            session.CurrentImage.Format,
+            session.CurrentImage.Channels,
+            session.CurrentImage.ChannelSize,
+            session.CurrentImage.Stride);
  
         session.UndoLastOperation(previousImageData);
  

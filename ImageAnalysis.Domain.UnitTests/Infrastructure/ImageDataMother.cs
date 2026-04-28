@@ -10,12 +10,18 @@ public class ImageDataMother
     public static ImageData Default() =>
         new(imageId: Guid.NewGuid(),
             dimensions: new ImageDimensions(TestConstants.DefaultImageWidth, TestConstants.DefaultImageHeight),
-            format: TestConstants.DefaultFormat);
+            format: TestConstants.DefaultFormat,
+            1,
+            1,
+            1);
 
     public static ImageData WithDimensions(int width, int height) =>
         new(imageId: Guid.NewGuid(),
             dimensions: new ImageDimensions(width, height),
-            format: TestConstants.DefaultFormat);
+            format: TestConstants.DefaultFormat,
+            1,
+            1,
+            1);
 
     public static ImageData Small() => WithDimensions(100, 100);
 }

@@ -91,7 +91,10 @@ public sealed class ApplyOperationCommandHandler(
         var newImageData = new ImageData(
             storeResult.Value,
             session.CurrentImage.Dimensions,
-            session.CurrentImage.Format);
+            session.CurrentImage.Format,
+            session.CurrentImage.Channels,
+            session.CurrentImage.ChannelSize,
+            session.CurrentImage.Stride);
 
         // 6. Mutate aggregate
         session.ApplyOperation(operation, newImageData);

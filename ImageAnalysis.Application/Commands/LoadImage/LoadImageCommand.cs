@@ -37,14 +37,19 @@ public sealed class LoadImageCommandHandler(
             return Error.ImageFormatInvalid(command.Format);
 
         var gotDecodedImage = await processor.DecodeImageBytes(command.Bytes, ct);
-        if(gotDecodedImage.IsFailure)
+        if (gotDecodedImage.IsFailure)
             return gotDecodedImage.Error;
 
         var storeResult = await storage.StoreAsync(gotDecodedImage.Value.Bytes, normalizedFormat, ct);
         if (storeResult.IsFailure) return storeResult.Error;
 
         var imageId = storeResult.Value;
-        var imageData = new ImageData(imageId, gotDecodedImage.Value.Dimensions, normalizedFormat);
+        var imageData = new ImageData(imageId,
+            gotDecodedImage.Value.Dimensions,
+            normalizedFormat,
+            gotDecodedImage.Value.Channels,
+            gotDecodedImage.Value.ChannelSize,
+            gotDecodedImage.Value.Stride);
 
         var session = ImageSession.Create();
         session.LoadImage(imageData);

@@ -1,4 +1,5 @@
 ﻿<UserControl
+    d:DataContext="{d:DesignInstance viewModel:ImageViewerViewModel}"
     d:DesignHeight="300"
     d:DesignWidth="300"
     mc:Ignorable="d"
@@ -9,6 +10,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:Diploma.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:visualBasic="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid Background="Black">
