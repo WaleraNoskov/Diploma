@@ -1,4 +1,5 @@
 ﻿using Contracts;
+using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Services;
 using ImageAnalysis.Domain.Entities.ProcessingOperations;
 using ImageAnalysis.Domain.ValueObjects;
@@ -13,10 +14,9 @@ public class OpenCvImageProcessor : IImageProcessor
         ProcessingOperation operation,
         CancellationToken ct = default)
     {
-        using var src = new Mat(imageData.Dimensions.Width, imageData.Dimensions.Height, MatType.CV_16UC1);
-        src.SetArray(sourceBytes);
+        using var src = Decode(sourceBytes);
 
-        var operationResult = operation switch
+        var result = operation switch
         {
             GrayscaleOperation => ApplyGrayscale(src),
             MedianFilterOperation m => ApplyMedian(src, m.KernelSize),
@@ -28,14 +28,14 @@ public class OpenCvImageProcessor : IImageProcessor
             _ => null
         };
 
-        if (operationResult is null)
+        if (result is null)
             return Task.FromResult<Result<byte[]>>(Error.OperationFailed("No suitable handler found"));
+        
+        var size = result.Rows * result.Cols * result.Channels();
+        var bytes = new byte[size];
+        System.Runtime.InteropServices.Marshal.Copy(result.Data, bytes, 0, size);
 
-        var gotArray = operationResult.GetArray(out byte[] array);
-        if (!gotArray)
-            return Task.FromResult<Result<byte[]>>(Error.OperationFailed("Cannot get result array"));
-
-        return Task.FromResult<Result<byte[]>>(array);
+        return Task.FromResult<Result<byte[]>>(bytes);
     }
 
     public Task<Result<IReadOnlyList<ContourPoints>>> DetectContoursAsync(ImageData imageData,
@@ -56,17 +56,30 @@ public class OpenCvImageProcessor : IImageProcessor
         }
     }
 
-    public Task<Result<ImageDimensions>> GetDimensionsAsync(byte[] sourceBytes, CancellationToken ct = default)
+    public Task<Result<DecodedImage>> DecodeImageBytes(byte[] sourceBytes, CancellationToken ct = default)
     {
         try
         {
-            using var mat = Decode(sourceBytes);
+            using var mat = Cv2.ImDecode(sourceBytes, ImreadModes.Unchanged);
 
-            return Task.FromResult(Result<ImageDimensions>.Success(new ImageDimensions(mat.Width, mat.Height)));
+            if (mat.Empty())
+                throw new Exception("Failed to decode image");
+
+            var width = mat.Width;
+            var height = mat.Height;
+            var channels = mat.Channels();
+
+            var size = (int)(mat.Total() * mat.ElemSize());
+            var raw = new byte[size];
+
+            System.Runtime.InteropServices.Marshal.Copy(mat.Data, raw, 0, size);
+
+            var result = new DecodedImage(new ImageDimensions(width, height), channels, raw);
+            return Task.FromResult<Result<DecodedImage>>(result);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Task.FromResult(Result<ImageDimensions>.Fail(Error.ImageDimensionsNotDetectoed()));
+            return Task.FromException<Result<DecodedImage>>(exception);
         }
     }
 
@@ -77,9 +90,12 @@ public class OpenCvImageProcessor : IImageProcessor
 
     private static Mat ApplyGrayscale(Mat src)
     {
-        var dst = new Mat();
-        Cv2.CvtColor(src, dst, ColorConversionCodes.BGR2GRAY);
-        return dst;
+        var gray = new Mat();
+        Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+
+        var gray3Channel = new Mat();
+        Cv2.CvtColor(gray, gray3Channel, ColorConversionCodes.GRAY2BGR);
+        return gray3Channel;
     }
 
     private static Mat ApplyMedian(Mat src, int kernelSize)

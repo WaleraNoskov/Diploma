@@ -1,8 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using Diploma.Mvvm;
-using Diploma.ViewModel;
+﻿using System.Windows;
 using ImageAnalysis.Application.Commands.LoadImage;
 using ImageAnalysis.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,12 +17,7 @@ public partial class App : Application
     {
         services.AddImageProcessingApplication(typeof(DependencyInjection).Assembly, typeof(LoadImageCommand).Assembly);
 
-        services.AddSingleton<IDialogService, DialogService>();
-        services.AddTransient<ImageCanvasViewModel>();
-        services.AddTransient<OperationHistoryViewModel>();
-        services.AddTransient<ParametersPanelViewModel>();
-        services.AddTransient<StatusBarViewModel>();
-        services.AddTransient<MainViewModel>();
+        
         services.AddSingleton<MainWindow>();
     }
 
@@ -38,9 +29,7 @@ public partial class App : Application
 
         await _host.StartAsync();
 
-        var mainWindowViewModel = _host.Services.GetRequiredService<MainViewModel>();
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        mainWindow.DataContext = mainWindowViewModel;
         mainWindow.Show();
 
         base.OnStartup(e);

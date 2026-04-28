@@ -1,4 +1,5 @@
 ﻿using Contracts;
+using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Domain.Entities.ProcessingOperations;
 using ImageAnalysis.Domain.ValueObjects;
 
@@ -31,9 +32,6 @@ public interface IImageProcessor
         ImageData imageData,
         byte[] sourceBytes,
         CancellationToken ct = default);
-
-    /// <summary>Returns the pixel dimensions of the given image bytes.</summary>
-    Task<Result<ImageDimensions>> GetDimensionsAsync(
-        byte[] sourceBytes,
-        CancellationToken ct = default);
+    
+    Task<Result<DecodedImage>> DecodeImageBytes(byte[] sourceBytes, CancellationToken ct = default);
 }

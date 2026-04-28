@@ -32,26 +32,20 @@ public sealed class LoadImageCommandHandler(
         LoadImageCommand command,
         CancellationToken ct)
     {
-        // 1. Validate format before touching storage
         var normalizedFormat = command.Format.ToUpperInvariant();
         if (!SupportedFormats.Contains(normalizedFormat))
             return Error.ImageFormatInvalid(command.Format);
 
-        // 2. Resolve image dimensions via processor (avoids loading OpenCV in domain)
-        var dimsResult = await processor.GetDimensionsAsync(command.Bytes, ct);
-        if (dimsResult.IsFailure) return dimsResult.Error;
+        var gotDecodedImage = await processor.DecodeImageBytes(command.Bytes, ct);
+        if(gotDecodedImage.IsFailure)
+            return gotDecodedImage.Error;
 
-        // 3. Persist bytes → get stable image ID
-        var storeResult = await storage.StoreAsync(command.Bytes, normalizedFormat, ct);
+        var storeResult = await storage.StoreAsync(gotDecodedImage.Value.Bytes, normalizedFormat, ct);
         if (storeResult.IsFailure) return storeResult.Error;
 
         var imageId = storeResult.Value;
-        var dimensions = dimsResult.Value;
+        var imageData = new ImageData(imageId, gotDecodedImage.Value.Dimensions, normalizedFormat);
 
-        // 4. Build ImageData (no bytes — only the ID reference)
-        var imageData = new ImageData(imageId, dimensions, normalizedFormat);
-
-        // 5. Create and initialise the aggregate
         var session = ImageSession.Create();
         session.LoadImage(imageData);
 
@@ -62,6 +56,6 @@ public sealed class LoadImageCommandHandler(
         // 7. Publish domain events (after persist — outbox pattern here if needed)
         await eventPublisher.PublishAndClearAsync(session, ct);
 
-        return new LoadImageResult(session.Id, imageId, dimensions.ToDto());
+        return new LoadImageResult(session.Id, imageId, gotDecodedImage.Value.Dimensions.ToDto());
     }
 }
