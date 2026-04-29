@@ -21,8 +21,4 @@
       <ProjectReference Include="..\ImageAnalysis.Infrastructure\ImageAnalysis.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Model\" />
-    </ItemGroup>
-
 </Project>
