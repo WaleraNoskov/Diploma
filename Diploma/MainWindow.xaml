@@ -1,7 +1,6 @@
 ﻿<Window
-    Height="800"
-    MinHeight="600"
-    MinWidth="800"
+    Background="White"
+    Height="600"
     Title="MainWindow"
     Width="800"
     d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}"
@@ -14,12 +13,18 @@
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:vm="clr-namespace:ImageAnalysis.Application.Dtos;assembly=ImageAnalysis.Application"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <view:ProjectManagementControl DataContext="{Binding ProjectManagementViewModel}" Grid.Row="0" />
-        <view:ImageViewerControl DataContext="{Binding ImageViewerViewModel}" Grid.Row="1" />
+    <Grid ColumnDefinitions="*, 200" RowDefinitions="Auto, *">
+        <view:ProjectManagementControl
+            DataContext="{Binding ProjectManagementViewModel}"
+            Grid.Column="0"
+            Grid.Row="0" />
+        <view:ImageViewerControl
+            DataContext="{Binding ImageViewerViewModel}"
+            Grid.ColumnSpan="2"
+            Grid.Row="1" />
+        <view:FiltersControl
+            DataContext="{Binding FiltersViewModel}"
+            Grid.Column="1"
+            Grid.Row="1" />
     </Grid>
 </Window>
