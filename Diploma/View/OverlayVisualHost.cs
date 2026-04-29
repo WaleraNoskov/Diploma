@@ -14,7 +14,7 @@ namespace Diploma.View;
 public class OverlayVisualHost : FrameworkElement
 {
     private readonly VisualCollection _visuals;
-    private DrawingVisual _visual;
+    private readonly DrawingVisual _visual;
 
     public OverlayVisualHost()
     {
@@ -22,34 +22,34 @@ public class OverlayVisualHost : FrameworkElement
         _visual = new DrawingVisual();
         _visuals.Add(_visual);
 
-        Loaded += (_, _) => Redraw();
+        // Перерисовываем, когда меняется DataContext или размеры
+        DataContextChanged += (_, _) => Redraw();
+        SizeChanged += (_, _) => Redraw();
     }
 
     protected override int VisualChildrenCount => _visuals.Count;
-
-    protected override Visual GetVisualChild(int index)
-        => _visuals[index];
+    protected override Visual GetVisualChild(int index) => _visuals[index];
 
     public void Redraw()
     {
-        if (DataContext is not ImageViewerViewModel vm)
-            return;
+        if (DataContext is not ImageViewerViewModel vm) return;
 
-        using var dc = _visual.RenderOpen();
-
-        var pen = new Pen(Brushes.Lime, 2);
-
-        foreach (var m in vm.Measurements)
+        using (var dc = _visual.RenderOpen())
         {
-            var start = new Point(m.From.X, m.From.Y);
-            var end = new Point(m.To.X, m.To.Y);
-            dc.DrawLine(pen, start, end);
+            // Рисуем прозрачный фон, если нужно, чтобы контрол имел физический размер, 
+            // но так как IsHitTestVisible="False", это не перекроет мышь.
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ActualWidth, ActualHeight));
+
+            var pen = new Pen(Brushes.Lime, 2);
+            // Чтобы толщина линии не менялась при зуме, можно сделать так:
+            // pen.Thickness = 2 / ((MatrixTransform)RenderTransform).Matrix.M11;
+
+            foreach (var m in vm.Measurements)
+            {
+                dc.DrawLine(pen, new Point(m.From.X, m.From.Y), new Point(m.To.X, m.To.Y));
+            }
         }
     }
 
-    protected override void OnRender(DrawingContext drawingContext)
-    {
-        base.OnRender(drawingContext);
-        Redraw();
-    }
+    // OnRender нам больше не нужен, так как мы используем DrawingVisual
 }

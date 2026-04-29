@@ -1,4 +1,5 @@
-﻿using Contracts;
+﻿using System.Runtime.InteropServices;
+using Contracts;
 using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Services;
 using ImageAnalysis.Domain.Entities.ProcessingOperations;
@@ -14,7 +15,29 @@ public class OpenCvImageProcessor : IImageProcessor
         ProcessingOperation operation,
         CancellationToken ct = default)
     {
-        using var src = Decode(sourceBytes);
+        var type = (imageData.Channels * imageData.ChannelSize) switch
+        {
+            1 => MatType.CV_8UC1,
+            2 => MatType.CV_16UC1,
+            3 => MatType.CV_8UC3,
+            4 => MatType.CV_8UC4,
+            _ => throw new NotSupportedException($"Channels: {imageData.Channels * imageData.ChannelSize}")
+        };
+
+        var src = new Mat(imageData.Dimensions.Height, imageData.Dimensions.Width, type);
+
+        try
+        {
+            // Копируем данные напрямую в указатель Mat.Data
+            // Это работает для любого количества каналов и любой битности, 
+            // так как мы просто переносим байты "как есть"
+            Marshal.Copy(sourceBytes, 0, src.Data, sourceBytes.Length);
+        }
+        catch (Exception e)
+        {
+            // Не оставляйте catch пустым, хотя бы залогируйте ошибку
+            return Task.FromResult<Result<byte[]>>(Error.OperationFailed($"Memory copy failed: {e.Message}"));
+        }
 
         var result = operation switch
         {
@@ -30,7 +53,7 @@ public class OpenCvImageProcessor : IImageProcessor
 
         if (result is null)
             return Task.FromResult<Result<byte[]>>(Error.OperationFailed("No suitable handler found"));
-        
+
         var size = result.Rows * result.Cols * result.Channels();
         var bytes = new byte[size];
         System.Runtime.InteropServices.Marshal.Copy(result.Data, bytes, 0, size);
@@ -70,11 +93,11 @@ public class OpenCvImageProcessor : IImageProcessor
             var channels = mat.Channels();
             var channelSize = mat.ElemSize() / channels;
             var stride = mat.Step();
-            
+
             var size = (int)(mat.Total() * channelSize * channels);
             var raw = new byte[size];
 
-            System.Runtime.InteropServices.Marshal.Copy(mat.Data, raw, 0, size);
+            Marshal.Copy(mat.Data, raw, 0, size);
 
             var result = new DecodedImage(new ImageDimensions(width, height), channels, channelSize, (int)stride, raw);
             return Task.FromResult<Result<DecodedImage>>(result);
@@ -83,11 +106,6 @@ public class OpenCvImageProcessor : IImageProcessor
         {
             return Task.FromException<Result<DecodedImage>>(exception);
         }
-    }
-
-    private static Mat Decode(byte[] bytes)
-    {
-        return Cv2.ImDecode(bytes, ImreadModes.Color);
     }
 
     private static Mat ApplyGrayscale(Mat src)

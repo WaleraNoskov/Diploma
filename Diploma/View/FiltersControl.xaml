@@ -1,4 +1,5 @@
 ﻿<UserControl
+    DataContextChanged="FiltersControl_OnDataContextChanged"
     d:DataContext="{d:DesignInstance viewModel:FiltersViewModel}"
     d:DesignHeight="500"
     d:DesignWidth="300"
@@ -62,7 +63,7 @@
             <Slider
                 IsSnapToTickEnabled="True"
                 Maximum="10"
-                Minimum="0"
+                Minimum="1"
                 x:Name="GaussianSigmaSlider" />
         </StackPanel>
 
@@ -96,6 +97,7 @@
         </StackPanel>
 
         <Button
+            Click="ButtonBase_OnClick"
             Command="{Binding ApplyFilterAsyncCommand}"
             Content="Применить"
             Margin="0,8,0,0"

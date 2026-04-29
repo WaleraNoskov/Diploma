@@ -23,20 +23,14 @@ public class ProjectManagementViewModel : BaseViewModel
     }
 
 
-    #region ProjectName : string?
-
-    private string? _projectName;
-
     /// <summary> 
     /// Get the project name 
     /// </summary>
     public string? ProjectName
     {
-        get => _projectName;
-        private set => SetField(ref _projectName, value);
+        get;
+        private set => SetField(ref field, value);
     }
-
-    #endregion ProjectName
 
     #region OpenFile
 
@@ -61,8 +55,7 @@ public class ProjectManagementViewModel : BaseViewModel
             return;
         }
         
-        Path.GetFileNameWithoutExtension(path);
-        ProjectName = path;
+        ProjectName = Path.GetFileNameWithoutExtension(path);
 
         WeakReferenceMessenger.Default.Send(new NewSessionOpened(result.Value.SessionId));
     }

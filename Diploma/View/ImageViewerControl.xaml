@@ -24,10 +24,16 @@
                 <Image
                     RenderTransform="{Binding Transform}"
                     RenderTransformOrigin="0,0"
-                    Source="{Binding ImageSource}" />
+                    Source="{Binding ImageSource}"
+                    x:Name="TargetImage" />
 
                 <!--  OVERLAY  -->
-                <local:OverlayVisualHost DataContext="{Binding}" x:Name="Overlay" />
+                <local:OverlayVisualHost
+                    DataContext="{Binding}"
+                    Height="{Binding ElementName=TargetImage, Path=ActualHeight}"
+                    IsHitTestVisible="False"
+                    RenderTransform="{Binding Transform}"
+                    Width="{Binding ElementName=TargetImage, Path=ActualWidth}" />
 
                 <!--  INPUT  -->
                 <i:Interaction.Behaviors>

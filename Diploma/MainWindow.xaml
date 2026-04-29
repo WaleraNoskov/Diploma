@@ -13,18 +13,17 @@
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:vm="clr-namespace:ImageAnalysis.Application.Dtos;assembly=ImageAnalysis.Application"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid ColumnDefinitions="*, 200" RowDefinitions="Auto, *">
+    <Grid ColumnDefinitions="*, 220" RowDefinitions="Auto, *">
         <view:ProjectManagementControl
             DataContext="{Binding ProjectManagementViewModel}"
-            Grid.Column="0"
-            Grid.Row="0" />
-        <view:ImageViewerControl
-            DataContext="{Binding ImageViewerViewModel}"
-            Grid.ColumnSpan="2"
-            Grid.Row="1" />
+            Grid.Column="1"
+            Grid.Row="0"
+            Margin="16,4,16,16" />
+        <view:ImageViewerControl DataContext="{Binding ImageViewerViewModel}" Grid.Row="1" />
         <view:FiltersControl
             DataContext="{Binding FiltersViewModel}"
             Grid.Column="1"
-            Grid.Row="1" />
+            Grid.Row="1"
+            Margin="16,0,16,16" />
     </Grid>
 </Window>
