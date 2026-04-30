@@ -24,30 +24,15 @@ public class OpenCvImageProcessor : IImageProcessor
             _ => throw new NotSupportedException($"Channels: {imageData.Channels * imageData.ChannelSize}")
         };
 
-        var src = new Mat(imageData.Dimensions.Height, imageData.Dimensions.Width, type);
-
-        try
-        {
-            // Копируем данные напрямую в указатель Mat.Data
-            // Это работает для любого количества каналов и любой битности, 
-            // так как мы просто переносим байты "как есть"
-            Marshal.Copy(sourceBytes, 0, src.Data, sourceBytes.Length);
-        }
-        catch (Exception e)
-        {
-            // Не оставляйте catch пустым, хотя бы залогируйте ошибку
-            return Task.FromResult<Result<byte[]>>(Error.OperationFailed($"Memory copy failed: {e.Message}"));
-        }
-
+        var src = Mat.FromPixelData(imageData.Dimensions.Height, imageData.Dimensions.Width, type, sourceBytes);
         var result = operation switch
         {
-            GrayscaleOperation => ApplyGrayscale(src),
+            GrayscaleOperation => ApplyGrayscale(src, type),
             MedianFilterOperation m => ApplyMedian(src, m.KernelSize),
             GaussianBlurOperation g => ApplyGaussian(src, g.KernelSize),
             BrightnessOperation b => ApplyBrightness(src, b.Delta),
             ContrastOperation c => ApplyContrast(src, c.Factor),
-            ThresholdingOperation t => ApplyThreshold(src, t.ThresholdValue),
-
+            ThresholdingOperation t => ApplyThreshold(src, type, t.ThresholdValue),
             _ => null
         };
 
@@ -69,9 +54,33 @@ public class OpenCvImageProcessor : IImageProcessor
         {
             using var src = new Mat(imageData.Dimensions.Width, imageData.Dimensions.Height, MatType.CV_16UC1);
 
-            var contours = DetectContours(src);
+            var type = (imageData.Channels * imageData.ChannelSize) switch
+            {
+                1 => MatType.CV_8UC1,
+                2 => MatType.CV_16UC1,
+                3 => MatType.CV_8UC3,
+                4 => MatType.CV_8UC4,
+                _ => throw new NotSupportedException($"Channels: {imageData.Channels * imageData.ChannelSize}")
+            }; 
+            
+            var gray = src.Channels() == 1 ? src : ApplyGrayscale(src, type);
 
-            return Task.FromResult(Result<IReadOnlyList<ContourPoints>>.Success(contours));
+            var binary = new Mat();
+            Cv2.Threshold(gray, binary, 127, 255, ThresholdTypes.Binary);
+
+            Cv2.FindContours(
+                binary,
+                out var contours,
+                out _,
+                RetrievalModes.External,
+                ContourApproximationModes.ApproxSimple);
+
+            var resultContours = contours
+                .Select(c => new ContourPoints(
+                    c.Select(p => new PixelPoint(p.X, p.Y)).ToList()))
+                .ToList();
+
+            return Task.FromResult(Result<IReadOnlyList<ContourPoints>>.Success(resultContours));
         }
         catch (Exception ex)
         {
@@ -108,13 +117,27 @@ public class OpenCvImageProcessor : IImageProcessor
         }
     }
 
-    private static Mat ApplyGrayscale(Mat src)
+    private static Mat ApplyGrayscale(Mat src, MatType matType)
     {
+        if (matType.Channels == 1)
+            return src;
+
         var gray = new Mat();
-        Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+
+        if (matType == MatType.CV_8UC3)
+            Cv2.CvtColor(src, gray, ColorConversionCodes.BGR2GRAY);
+        else if (matType == MatType.CV_8UC4)
+            Cv2.CvtColor(src, gray, ColorConversionCodes.BGRA2GRAY);
+        else
+            throw new NotSupportedException($"MatType: {matType}");
 
         var gray3Channel = new Mat();
-        Cv2.CvtColor(gray, gray3Channel, ColorConversionCodes.GRAY2BGR);
+
+        if (matType == MatType.CV_8UC3)
+            Cv2.CvtColor(gray, gray3Channel, ColorConversionCodes.GRAY2BGR);
+        else if (matType == MatType.CV_8UC4)
+            Cv2.CvtColor(gray, gray3Channel, ColorConversionCodes.GRAY2BGRA);
+
         return gray3Channel;
     }
 
@@ -146,33 +169,13 @@ public class OpenCvImageProcessor : IImageProcessor
         return dst;
     }
 
-    private static Mat ApplyThreshold(Mat src, double threshold)
+    private static Mat ApplyThreshold(Mat src, MatType type, double threshold)
     {
-        var gray = src.Channels() == 1 ? src : ApplyGrayscale(src);
+        var gray = src.Channels() == 1 ? src : ApplyGrayscale(src, type);
 
         var dst = new Mat();
         Cv2.Threshold(gray, dst, threshold, 255, ThresholdTypes.Binary);
 
         return dst;
-    }
-
-    private static IReadOnlyList<ContourPoints> DetectContours(Mat src)
-    {
-        var gray = src.Channels() == 1 ? src : ApplyGrayscale(src);
-
-        var binary = new Mat();
-        Cv2.Threshold(gray, binary, 127, 255, ThresholdTypes.Binary);
-
-        Cv2.FindContours(
-            binary,
-            out Point[][] contours,
-            out _,
-            RetrievalModes.External,
-            ContourApproximationModes.ApproxSimple);
-
-        return contours
-            .Select(c => new ContourPoints(
-                c.Select(p => new PixelPoint(p.X, p.Y)).ToList()))
-            .ToList();
     }
 }

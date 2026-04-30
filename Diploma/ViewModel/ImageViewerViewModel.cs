@@ -13,6 +13,7 @@ using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Queries;
 using ImageAnalysis.Application.Utils;
 using ImageAnalysis.Domain.Entities;
+using ImageAnalysis.Domain.Events;
 using ImageAnalysis.Domain.ValueObjects;
 using MediatR;
 
@@ -31,6 +32,7 @@ public class ImageViewerViewModel : BaseViewModel
         _dialogService = dialogService;
 
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
+        WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
     }
 
     #region ImageSource : ImageSource
@@ -197,6 +199,19 @@ public class ImageViewerViewModel : BaseViewModel
             _currentSessionId = message.Value;
             await Reload();
             await ResetImage();
+        }
+        catch (Exception e)
+        {
+            // ignored
+        }
+    }
+    
+    private async void OnNewSessionNotification(object recipient, NewSessionNotification message)
+    {
+        try
+        {
+            if (message.Value.Event is OperationAppliedEvent)
+                await ResetImage();
         }
         catch (Exception e)
         {
