@@ -23,14 +23,7 @@
             VerticalScrollBarVisibility="Auto"
             x:Name="PART_Scroll">
 
-            <Grid>
-                <TextBlock
-                    FontSize="14"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    HorizontalAlignment="Center"
-                    Text="Откройте изображение для начала работы"
-                    VerticalAlignment="Center"
-                    Visibility="{Binding ImageSource, Converter={StaticResource NullToVisibilityConverter}}" />
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <!--  IMAGE  -->
                 <Image
@@ -49,10 +42,7 @@
 
                 <!--  INPUT  -->
                 <i:Interaction.Behaviors>
-                    <local:ImageMouseBehavior
-                        ClickCommand="{Binding ClickCommand}"
-                        MouseMoveCommand="{Binding MouseMoveCommand}"
-                        WheelCommand="{Binding MouseWheelCommand}" />
+                    <local:ImageMouseBehavior ClickCommand="{Binding ClickCommand}" WheelCommand="{Binding MouseWheelCommand}" />
                 </i:Interaction.Behaviors>
             </Grid>
         </ScrollViewer>

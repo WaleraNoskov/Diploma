@@ -16,6 +16,8 @@ using ImageAnalysis.Domain.Entities;
 using ImageAnalysis.Domain.Events;
 using ImageAnalysis.Domain.ValueObjects;
 using MediatR;
+using AsyncRelayCommand = Diploma.Mvvm.AsyncRelayCommand;
+using RelayCommand = Diploma.Mvvm.RelayCommand;
 
 namespace Diploma.ViewModel;
 
@@ -31,56 +33,41 @@ public class ImageViewerViewModel : BaseViewModel
         _mediator = mediator;
         _dialogService = dialogService;
 
+        ClickCommand = new AsyncRelayCommand(OnClickCommandExecuted);
+        MouseWheelCommand = new RelayCommand(OnMouseWheelCommandExecuted);
+
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
         WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
     }
 
-    #region ImageSource : ImageSource
-
-    private ImageSource _imageSource;
-
     /// <summary> 
     /// Gets current image source .
     /// </summary>
-    public ImageSource ImageSource
+    public ImageSource? ImageSource
     {
-        get => _imageSource;
-        private set => SetField(ref _imageSource, value);
+        get;
+        private set => SetField(ref field, value);
     }
 
-    #endregion ImageSource
-
     public ObservableCollection<MeasurementDto> Measurements { get; } = new();
-
-    #region Zoom : double
-
-    private double _zoom = 1;
 
     /// <summary> 
     /// Gets current zoom. 
     /// </summary>
     public double Zoom
     {
-        get => _zoom;
-        set => SetField(ref _zoom, value);
-    }
-
-    #endregion Zoom
-
-    #region Offset : PixelPoint
-
-    private PixelPoint _pixelPoint = new(0, 0);
+        get;
+        set => SetField(ref field, value);
+    } = 1;
 
     /// <summary> 
     /// Gets the pixel point. 
     /// </summary>
     public PixelPoint Offset
     {
-        get => _pixelPoint;
-        set => SetField(ref _pixelPoint, value);
-    }
-
-    #endregion Offset
+        get;
+        set => SetField(ref field, value);
+    } = new(0, 0);
 
     public TransformGroup Transform => new TransformGroup
     {
@@ -91,10 +78,14 @@ public class ImageViewerViewModel : BaseViewModel
         }
     };
 
-    public ICommand ClickCommand => new RelayCommand<PixelPoint>(async p =>
+    public ICommand ClickCommand { get; }
+    
+    private async Task OnClickCommandExecuted(object? param)
     {
-        if (!_currentSessionId.HasValue)
+        if (param is not PixelPoint p)
             return;
+        
+        if (!_currentSessionId.HasValue) return;
 
         var imgPoint = ScreenToImage(p);
 
@@ -104,22 +95,23 @@ public class ImageViewerViewModel : BaseViewModel
             return;
         }
 
-        await _mediator.Send(new TakeMeasurementCommand(_currentSessionId.Value,
-            _firstPoint.ToDto(),
-            imgPoint.ToDto()));
+        await _mediator.Send(new TakeMeasurementCommand(_currentSessionId.Value, _firstPoint.ToDto(), imgPoint.ToDto()));
 
         _firstPoint = null;
 
         await Reload();
-    });
+    }
 
-    public ICommand MouseWheelCommand => new RelayCommand<int>(delta =>
+    public ICommand MouseWheelCommand { get; }
+
+    private void OnMouseWheelCommandExecuted(object? param)
     {
+        if (param is not int delta)
+            return;
+        
         Zoom *= delta > 0 ? 1.1 : 0.9;
         OnPropertyChanged(nameof(Transform));
-    });
-
-    public ICommand MouseMoveCommand => new RelayCommand<PixelPoint>(_ => { });
+    }
 
     private PixelPoint ScreenToImage(PixelPoint p)
     {
@@ -205,19 +197,21 @@ public class ImageViewerViewModel : BaseViewModel
             // ignored
         }
     }
-    
+
     private async void OnNewSessionNotification(object recipient, NewSessionNotification message)
     {
         try
         {
-            if(message.Value.Event is MeasurementTakenEvent or MeasurementRemovedEvent)
-            {
-                await Reload();
-                await ResetImage();
-            }
-            
-            else if (message.Value.Event is OperationAppliedEvent or OperationUndoneEvent or SessionResetEvent)
-                await ResetImage();
+            if (message.Value.Event is not
+                (OperationAppliedEvent
+                or OperationUndoneEvent
+                or SessionResetEvent
+                or MeasurementTakenEvent
+                or MeasurementRemovedEvent))
+                return;
+
+            await Reload();
+            await ResetImage();
         }
         catch (Exception e)
         {
