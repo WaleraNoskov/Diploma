@@ -30,10 +30,15 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button
-            Command="{Binding UndoAsyncCommand}"
-            Content="Отменить"
+        <StackPanel
             Grid.Row="2"
-            HorizontalAlignment="Right" />
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button
+                Command="{Binding ResetAllAsyncCommand}"
+                Content="Сбросить все"
+                Margin="0,0,8,0" />
+            <Button Command="{Binding UndoAsyncCommand}" Content="Отменить" />
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -22,6 +22,7 @@ public class OperationHistoryViewModel : BaseViewModel
         _dialogService = dialogService;
         
         UndoAsyncCommand = new AsyncRelayCommand(OnUndoAsyncCommandExecuted, CanUndoAsyncCommandExecute);
+        ResetAllAsyncCommand = new AsyncRelayCommand(OnResetAllAsyncCommandExecuted, CanResetAllAsyncCommandExecute);
 
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
         WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
@@ -44,6 +45,24 @@ public class OperationHistoryViewModel : BaseViewModel
     }
 
     private bool CanUndoAsyncCommandExecute(object parameter) => _currentSessionId.HasValue && History.Count > 0;
+
+    #endregion
+
+    #region ResetAllAsyncCommand
+
+    public IAsyncCommand ResetAllAsyncCommand { get; set; }
+
+    private async Task OnResetAllAsyncCommandExecuted(object parameter)
+    {
+        if (!_currentSessionId.HasValue || History.Count == 0)
+            return;
+        
+        var result = await _mediator.Send(new ResetSessionCommand(_currentSessionId.Value));
+        if(result.IsFailure)
+            _dialogService.ShowError(result.Error.Code);
+    }
+
+    private bool CanResetAllAsyncCommandExecute(object parameter) => _currentSessionId.HasValue && History.Count > 0;
 
     #endregion
     
