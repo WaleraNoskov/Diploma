@@ -23,8 +23,16 @@ public class OverlayVisualHost : FrameworkElement
         _visuals.Add(_visual);
 
         // Перерисовываем, когда меняется DataContext или размеры
-        DataContextChanged += (_, _) => Redraw();
+        DataContextChanged += OnDataContextChanged;
         SizeChanged += (_, _) => Redraw();
+    }
+
+    private void OnDataContextChanged(object o, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
+    {
+        if(DataContext is INotifyPropertyChanged vm)
+            vm.PropertyChanged += (_, _) => Redraw();
+        
+        Redraw();
     }
 
     protected override int VisualChildrenCount => _visuals.Count;

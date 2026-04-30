@@ -210,7 +210,13 @@ public class ImageViewerViewModel : BaseViewModel
     {
         try
         {
-            if (message.Value.Event is OperationAppliedEvent or OperationUndoneEvent or SessionResetEvent)
+            if(message.Value.Event is MeasurementTakenEvent or MeasurementRemovedEvent)
+            {
+                await Reload();
+                await ResetImage();
+            }
+            
+            else if (message.Value.Event is OperationAppliedEvent or OperationUndoneEvent or SessionResetEvent)
                 await ResetImage();
         }
         catch (Exception e)
