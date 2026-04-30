@@ -11,16 +11,16 @@
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Top">
-        <TextBlock
-            FontSize="14"
-            FontWeight="SemiBold"
-            Margin="0,0,4,0"
-            Text="{Binding ProjectName}"
-            VerticalAlignment="Center" />
         <Button
             Command="{Binding OpenFileCommand}"
             Content="Открыть"
+            VerticalAlignment="Center" />
+        <TextBlock
+            FontSize="14"
+            FontWeight="SemiBold"
             Grid.Column="1"
+            Margin="8,0,0,0"
+            Text="{Binding ProjectName}"
             VerticalAlignment="Center" />
     </Grid>
 </UserControl>

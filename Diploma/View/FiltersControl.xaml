@@ -19,8 +19,13 @@
         <infrastructure:BoolToEqualityConverter x:Key="BoolToEqualityConverter" />
     </UserControl.Resources>
 
-    <StackPanel>
-        <StackPanel Margin="0,0,0,8">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock
+            FontSize="14"
+            FontWeight="SemiBold"
+            Text="Фильтры" />
+
+        <StackPanel Grid.Row="1" Margin="0,8,0,8">
             <RadioButton Content="Градации серого" IsChecked="{Binding SelectedFilter, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static model:OperationType.Grayscale}}" />
             <RadioButton Content="Яркость" IsChecked="{Binding SelectedFilter, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static model:OperationType.Brightness}}" />
             <RadioButton Content="Контраст" IsChecked="{Binding SelectedFilter, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static model:OperationType.Contrast}}" />
@@ -29,79 +34,82 @@
             <RadioButton Content="Пороговый" IsChecked="{Binding SelectedFilter, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static model:OperationType.Threshold}}" />
         </StackPanel>
 
-        <!--  Brightness  -->
-        <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Brightness}}">
-            <Label Content="Дельта" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="255"
-                Minimum="-255"
-                TickFrequency="5"
-                x:Name="BrightnessDeltaSlider" />
-        </StackPanel>
+        <StackPanel Grid.Row="2">
+            <!--  Brightness  -->
+            <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Brightness}}">
+                <Label Content="Дельта" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="255"
+                    Minimum="-255"
+                    TickFrequency="5"
+                    x:Name="BrightnessDeltaSlider" />
+            </StackPanel>
 
-        <!--  Contrast  -->
-        <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Contrast}}">
-            <Label Content="Фактор" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="10"
-                Minimum="0"
-                TickFrequency="0.5"
-                x:Name="ContrastFactorSlider" />
-        </StackPanel>
+            <!--  Contrast  -->
+            <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Contrast}}">
+                <Label Content="Фактор" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="10"
+                    Minimum="0"
+                    TickFrequency="0.5"
+                    x:Name="ContrastFactorSlider" />
+            </StackPanel>
 
-        <!--  Gaussian Blur  -->
-        <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.GaussianBlur}}">
-            <Label Content="Размер ядра" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="11"
-                Minimum="3"
-                TickFrequency="2"
-                x:Name="GaussianKernelSizeSlider" />
-            <Label Content="Сигма" Margin="0,4,0,0" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="10"
-                Minimum="1"
-                x:Name="GaussianSigmaSlider" />
-        </StackPanel>
+            <!--  Gaussian Blur  -->
+            <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.GaussianBlur}}">
+                <Label Content="Размер ядра" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="11"
+                    Minimum="3"
+                    TickFrequency="2"
+                    x:Name="GaussianKernelSizeSlider" />
+                <Label Content="Сигма" Margin="0,4,0,0" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="10"
+                    Minimum="1"
+                    x:Name="GaussianSigmaSlider" />
+            </StackPanel>
 
-        <!--  Median Filter  -->
-        <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Median}}">
-            <Label Content="Размер ядра" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="11"
-                Minimum="3"
-                TickFrequency="2"
-                x:Name="MedianKernelSizeSlider" />
-        </StackPanel>
+            <!--  Median Filter  -->
+            <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Median}}">
+                <Label Content="Размер ядра" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="11"
+                    Minimum="3"
+                    TickFrequency="2"
+                    x:Name="MedianKernelSizeSlider" />
+            </StackPanel>
 
-        <!--  Thresholding  -->
-        <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Threshold}}">
-            <Label Content="Порог" />
-            <Slider
-                IsSnapToTickEnabled="True"
-                Maximum="255"
-                Minimum="0"
-                TickFrequency="1"
-                x:Name="ThresholdingFactorSlider" />
+            <!--  Thresholding  -->
+            <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Threshold}}">
+                <Label Content="Порог" />
+                <Slider
+                    IsSnapToTickEnabled="True"
+                    Maximum="255"
+                    Minimum="0"
+                    TickFrequency="1"
+                    x:Name="ThresholdingFactorSlider" />
 
-            <Label Content="Порог" Margin="0,4,0,0" />
-            <ComboBox x:Name="ThresholdingTypeCombobox">
-                <ComboBoxItem Content="Бинарный" Tag="{x:Static processingOperations:ThresholdingMode.Binary}" />
-                <ComboBoxItem Content="Бинарный обратный" Tag="{x:Static processingOperations:ThresholdingMode.BinaryInverse}" />
-                <ComboBoxItem Content="Оцу" Tag="{x:Static processingOperations:ThresholdingMode.Otsu}" />
-            </ComboBox>
+                <Label Content="Порог" Margin="0,4,0,0" />
+                <ComboBox x:Name="ThresholdingTypeCombobox">
+                    <ComboBoxItem Content="Бинарный" Tag="{x:Static processingOperations:ThresholdingMode.Binary}" />
+                    <ComboBoxItem Content="Бинарный обратный" Tag="{x:Static processingOperations:ThresholdingMode.BinaryInverse}" />
+                    <ComboBoxItem Content="Оцу" Tag="{x:Static processingOperations:ThresholdingMode.Otsu}" />
+                </ComboBox>
+            </StackPanel>
         </StackPanel>
 
         <Button
             Click="ButtonBase_OnClick"
             Command="{Binding ApplyFilterAsyncCommand}"
             Content="Применить"
+            Grid.Row="3"
             Margin="0,8,0,0"
             Style="{DynamicResource AccentButtonStyle}" />
-    </StackPanel>
+    </Grid>
 </UserControl>

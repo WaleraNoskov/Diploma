@@ -1,8 +1,8 @@
 ﻿<Window
-    Background="White"
-    Height="600"
+    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+    MinHeight="800"
+    MinWidth="1024"
     Title="MainWindow"
-    Width="800"
     d:DataContext="{d:DesignInstance viewModel:MainWindowViewModel}"
     mc:Ignorable="d"
     x:Class="Diploma.MainWindow"
@@ -13,17 +13,39 @@
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:vm="clr-namespace:ImageAnalysis.Application.Dtos;assembly=ImageAnalysis.Application"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid ColumnDefinitions="*, 220" RowDefinitions="Auto, *">
-        <view:ProjectManagementControl
-            DataContext="{Binding ProjectManagementViewModel}"
+    <Window.Resources>
+        <Style TargetType="Border" x:Key="FloatingWidgetStyle">
+            <Setter Property="Margin" Value="12" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+    </Window.Resources>
+    <Grid ColumnDefinitions="250,*, 250" RowDefinitions="Auto, *">
+        <Border
+            Grid.Column="0"
+            Grid.RowSpan="2"
+            Style="{StaticResource FloatingWidgetStyle}">
+            <view:OperationHistoryControl DataContext="{Binding OperationHistoryViewModel}" />
+        </Border>
+
+        <Border
             Grid.Column="1"
             Grid.Row="0"
-            Margin="16,4,16,16" />
-        <view:ImageViewerControl DataContext="{Binding ImageViewerViewModel}" Grid.Row="1" />
-        <view:FiltersControl
-            DataContext="{Binding FiltersViewModel}"
+            Style="{StaticResource FloatingWidgetStyle}">
+            <view:ProjectManagementControl DataContext="{Binding ProjectManagementViewModel}" />
+        </Border>
+        <view:ImageViewerControl
+            DataContext="{Binding ImageViewerViewModel}"
             Grid.Column="1"
-            Grid.Row="1"
-            Margin="16,0,16,16" />
+            Grid.Row="1" />
+        <Border
+            Grid.Column="2"
+            Grid.RowSpan="2"
+            Style="{StaticResource FloatingWidgetStyle}">
+            <view:FiltersControl DataContext="{Binding FiltersViewModel}" />
+        </Border>
     </Grid>
 </Window>

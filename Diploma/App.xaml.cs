@@ -25,6 +25,7 @@ public partial class App : Application
         services.AddTransient<ImageViewerViewModel>();
         services.AddTransient<ProjectManagementViewModel>();
         services.AddTransient<FiltersViewModel>();
+        services.AddTransient<OperationHistoryViewModel>();
         
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();

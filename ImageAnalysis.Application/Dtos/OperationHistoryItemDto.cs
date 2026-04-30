@@ -1,8 +1,7 @@
 ﻿namespace ImageAnalysis.Application.Dtos;
 
 public sealed record OperationHistoryItemDto(
-    Guid   Id,
+    Guid Id,
     string OperationType,
     string Description,
     DateTime AppliedAt);
-
