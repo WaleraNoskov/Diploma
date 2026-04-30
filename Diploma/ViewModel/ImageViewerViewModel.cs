@@ -68,6 +68,14 @@ public class ImageViewerViewModel : BaseViewModel
         set => SetField(ref field, value);
     } = new(0, 0);
 
+    public double Scale
+    {
+        get;
+        set => SetField(ref field, value);
+    } = 1.0;
+
+    public MatrixTransform PanTransform { get; } = new();
+
     public MatrixTransform Transform { get; } = new();
 
     public void ZoomAt(Point cursor, double scale)
@@ -79,12 +87,6 @@ public class ImageViewerViewModel : BaseViewModel
         m.Translate(cursor.X, cursor.Y);
 
         _matrix = m;
-        Transform.Matrix = _matrix;
-    }
-
-    public void Pan(Vector delta)
-    {
-        _matrix.Translate(delta.X, delta.Y);
         Transform.Matrix = _matrix;
     }
 

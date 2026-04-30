@@ -18,8 +18,15 @@
     <UserControl.Resources>
         <infrastructure:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     </UserControl.Resources>
-    <Grid>
-        <Canvas Background="AliceBlue" x:Name="Surface">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Canvas
+            Height="{Binding ElementName=Image, Path=ActualHeight}"
+            Width="{Binding ElementName=Image, Path=ActualWidth}"
+            x:Name="Surface">
+
+            <Canvas.LayoutTransform>
+                <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}" />
+            </Canvas.LayoutTransform>
 
             <!--  IMAGE  -->
             <Image
@@ -39,6 +46,6 @@
                 <global:ZoomPanBehavior />
             </i:Interaction.Behaviors>
         </Canvas>
-    </Grid>
+    </ScrollViewer>
 
 </UserControl>
