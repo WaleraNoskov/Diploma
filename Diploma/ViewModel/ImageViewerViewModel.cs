@@ -35,6 +35,9 @@ public class ImageViewerViewModel : BaseViewModel
         _mediator = mediator;
         _dialogService = dialogService;
 
+        TakeMeasurementAsyncCommand =
+            new AsyncRelayCommand(OnTakeMeasurementAsyncCommandExecuted, CanTakeMeasurementAsyncCommandExecute);
+
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
         WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
     }
@@ -97,6 +100,32 @@ public class ImageViewerViewModel : BaseViewModel
         return inv.Transform(p);
     }
 
+    #region TakeMeasurementAsyncCommand
+
+    public IAsyncCommand TakeMeasurementAsyncCommand { get; set; }
+
+    private async Task OnTakeMeasurementAsyncCommandExecuted(object parameter)
+    {
+        if (!_currentSessionId.HasValue || parameter is not PixelPoint pixelPoint)
+            return;
+
+        if (_firstPoint is null)
+        {
+            _firstPoint = pixelPoint;
+            return;
+        }
+
+        var command = new TakeMeasurementCommand(_currentSessionId.Value, _firstPoint.ToDto(), pixelPoint.ToDto());
+        var result = await _mediator.Send(command);
+        if (result.IsFailure)
+            _dialogService.ShowError(result.Error.Code);
+
+        _firstPoint = null;
+    }
+
+    private bool CanTakeMeasurementAsyncCommandExecute(object parameter) => true;
+
+    #endregion
 
     private async Task ResetImage()
     {

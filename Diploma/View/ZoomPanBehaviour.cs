@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Diploma.ViewModel;
+using ImageAnalysis.Domain.ValueObjects;
 using Microsoft.Xaml.Behaviors;
 
 public class ZoomPanBehavior : Behavior<FrameworkElement>
@@ -11,14 +12,13 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
         => AssociatedObject.DataContext as ImageViewerViewModel;
 
     private ScrollViewer _scroll;
+    private bool _isDragging;
+    private Point? _mouseDownPoint;
     private Point? _last;
 
     protected override void OnAttached()
     {
-        AssociatedObject.Loaded += (_, _) =>
-        {
-            _scroll = FindScrollViewer(AssociatedObject.Parent);
-        };
+        AssociatedObject.Loaded += (_, _) => { _scroll = FindScrollViewer(AssociatedObject.Parent); };
 
         AssociatedObject.MouseWheel += OnWheel;
         AssociatedObject.MouseLeftButtonDown += OnDown;
@@ -52,12 +52,19 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
     private void OnDown(object sender, MouseButtonEventArgs e)
     {
         _last = e.GetPosition(_scroll);
+        _mouseDownPoint = e.GetPosition(_scroll);
         AssociatedObject.CaptureMouse();
     }
 
     private void OnUp(object sender, MouseButtonEventArgs e)
     {
+        if (!_isDragging && _last is not null)
+            ViewModel.TakeMeasurementAsyncCommand.Execute(new PixelPoint((int)_last.Value.X, (int)_last.Value.Y));
+
+        _isDragging = false;
+        _mouseDownPoint = null;
         _last = null;
+
         AssociatedObject.ReleaseMouseCapture();
     }
 
@@ -67,6 +74,9 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
 
         var current = e.GetPosition(_scroll);
         var delta = current - _last.Value;
+
+        if ((current - _mouseDownPoint!).Value.Length > 5)
+            _isDragging = true;
 
         _scroll.ScrollToHorizontalOffset(_scroll.HorizontalOffset - delta.X);
         _scroll.ScrollToVerticalOffset(_scroll.VerticalOffset - delta.Y);
