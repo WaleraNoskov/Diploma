@@ -7,6 +7,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:diploma="clr-namespace:Diploma.View"
+    xmlns:global="clr-namespace:"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:infrastructure="clr-namespace:Diploma.Infrastructure"
     xmlns:local="clr-namespace:Diploma.View"
@@ -18,33 +19,26 @@
         <infrastructure:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     </UserControl.Resources>
     <Grid>
-        <ScrollViewer
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto"
-            x:Name="PART_Scroll">
+        <Canvas Background="AliceBlue" x:Name="Surface">
 
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!--  IMAGE  -->
+            <Image
+                RenderTransform="{Binding Transform}"
+                RenderTransformOrigin="0,0"
+                Source="{Binding ImageSource}"
+                x:Name="Image" />
 
-                <!--  IMAGE  -->
-                <Image
-                    RenderTransform="{Binding Transform}"
-                    RenderTransformOrigin="0,0"
-                    Source="{Binding ImageSource}"
-                    x:Name="TargetImage" />
+            <!--  OVERLAY  -->
+            <local:OverlayVisualHost
+                Height="{Binding ElementName=Image, Path=ActualHeight}"
+                IsHitTestVisible="False"
+                RenderTransform="{Binding Transform}"
+                Width="{Binding ElementName=Image, Path=ActualWidth}" />
 
-                <!--  OVERLAY  -->
-                <local:OverlayVisualHost
-                    DataContext="{Binding}"
-                    Height="{Binding ElementName=TargetImage, Path=ActualHeight}"
-                    IsHitTestVisible="False"
-                    RenderTransform="{Binding Transform}"
-                    Width="{Binding ElementName=TargetImage, Path=ActualWidth}" />
-
-                <!--  INPUT  -->
-                <i:Interaction.Behaviors>
-                    <local:ImageMouseBehavior ClickCommand="{Binding ClickCommand}" WheelCommand="{Binding MouseWheelCommand}" />
-                </i:Interaction.Behaviors>
-            </Grid>
-        </ScrollViewer>
+            <i:Interaction.Behaviors>
+                <global:ZoomPanBehavior />
+            </i:Interaction.Behaviors>
+        </Canvas>
     </Grid>
+
 </UserControl>

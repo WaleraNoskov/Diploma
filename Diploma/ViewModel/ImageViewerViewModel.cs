@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -27,14 +28,12 @@ public class ImageViewerViewModel : BaseViewModel
     private readonly IDialogService _dialogService;
     private PixelPoint? _firstPoint;
     private Guid? _currentSessionId;
+    private Matrix _matrix = Matrix.Identity;
 
     public ImageViewerViewModel(IMediator mediator, IDialogService dialogService)
     {
         _mediator = mediator;
         _dialogService = dialogService;
-
-        ClickCommand = new AsyncRelayCommand(OnClickCommandExecuted);
-        MouseWheelCommand = new RelayCommand(OnMouseWheelCommandExecuted);
 
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
         WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
@@ -69,56 +68,33 @@ public class ImageViewerViewModel : BaseViewModel
         set => SetField(ref field, value);
     } = new(0, 0);
 
-    public TransformGroup Transform => new TransformGroup
+    public MatrixTransform Transform { get; } = new();
+
+    public void ZoomAt(Point cursor, double scale)
     {
-        Children = new TransformCollection
-        {
-            new ScaleTransform(Zoom, Zoom),
-            new TranslateTransform(Offset.X, Offset.Y)
-        }
-    };
+        var m = _matrix;
 
-    public ICommand ClickCommand { get; }
-    
-    private async Task OnClickCommandExecuted(object? param)
-    {
-        if (param is not PixelPoint p)
-            return;
-        
-        if (!_currentSessionId.HasValue) return;
+        m.Translate(-cursor.X, -cursor.Y);
+        m.Scale(scale, scale);
+        m.Translate(cursor.X, cursor.Y);
 
-        var imgPoint = ScreenToImage(p);
-
-        if (_firstPoint == null)
-        {
-            _firstPoint = imgPoint;
-            return;
-        }
-
-        await _mediator.Send(new TakeMeasurementCommand(_currentSessionId.Value, _firstPoint.ToDto(), imgPoint.ToDto()));
-
-        _firstPoint = null;
-
-        await Reload();
+        _matrix = m;
+        Transform.Matrix = _matrix;
     }
 
-    public ICommand MouseWheelCommand { get; }
-
-    private void OnMouseWheelCommandExecuted(object? param)
+    public void Pan(Vector delta)
     {
-        if (param is not int delta)
-            return;
-        
-        Zoom *= delta > 0 ? 1.1 : 0.9;
-        OnPropertyChanged(nameof(Transform));
+        _matrix.Translate(delta.X, delta.Y);
+        Transform.Matrix = _matrix;
     }
 
-    private PixelPoint ScreenToImage(PixelPoint p)
+    public Point ScreenToImage(Point p)
     {
-        return new PixelPoint(
-            (int)((p.X - Offset.X) / Zoom),
-            (int)((p.Y - Offset.Y) / Zoom));
+        var inv = _matrix;
+        inv.Invert();
+        return inv.Transform(p);
     }
+
 
     private async Task ResetImage()
     {
