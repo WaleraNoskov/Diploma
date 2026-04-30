@@ -39,7 +39,7 @@ public class ProjectManagementViewModel : BaseViewModel
     private async Task OnOpenFileCommandExecuted(object parameter)
     {
         const string filter =
-            "Images|*.png;*.jpg;*.jpeg;*.bmp;*.tiff|PNG|*.png|JPEG|*.jpg;*.jpeg|BMP|*.bmp|TIFF|*.tiff";
+            "Images|*.png;*.jpg;*.jpeg;*.bmp;*.tiff|PNG|*.png|JPEG|*.jpg;*.jpeg|BMP|*.bmp|TIFF|*.tiff;*.tif";
 
         var path = _dialogService.OpenFile("Открыть изображение", filter);
         if (path is null) return;
@@ -47,6 +47,7 @@ public class ProjectManagementViewModel : BaseViewModel
         var bytes = await File.ReadAllBytesAsync(path);
         var format = Path.GetExtension(path).TrimStart('.').ToUpperInvariant();
         if (format == "JPG") format = "JPEG";
+        if(format == "TIF") format = "TIFF";
 
         var result = await _mediator.Send(new LoadImageCommand(bytes, format));
         if(result.IsFailure)

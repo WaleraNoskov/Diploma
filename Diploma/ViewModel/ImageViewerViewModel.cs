@@ -171,7 +171,7 @@ public class ImageViewerViewModel : BaseViewModel
         }
         catch (Exception e)
         {
-            //ignored
+            _dialogService.ShowError(e.Message);
         }
     }
 
@@ -215,7 +215,7 @@ public class ImageViewerViewModel : BaseViewModel
         }
         catch (Exception e)
         {
-            // ignored
+            _dialogService.ShowError(e.Message);
         }
     }
 }

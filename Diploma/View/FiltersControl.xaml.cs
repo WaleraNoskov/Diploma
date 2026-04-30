@@ -23,8 +23,8 @@ public partial class FiltersControl : UserControl
 
         OperationPayload? payload = _viewModel.SelectedFilter switch
         {
-            OperationType.Threshold when ThresholdingTypeCombobox.SelectedValue is ThresholdingMode mode =>
-                new OperationPayload.Thresholding((byte)ThresholdingFactorSlider.Value, mode),
+            OperationType.Threshold when ((ComboBoxItem)ThresholdingTypeCombobox.SelectedItem).Tag is 
+                ThresholdingMode mode => new OperationPayload.Thresholding((byte)ThresholdingFactorSlider.Value, mode),
             OperationType.Brightness => new OperationPayload.Brightness((int)BrightnessDeltaSlider.Value),
             OperationType.Contrast => new OperationPayload.Contrast((int)ContrastFactorSlider.Value),
             OperationType.GaussianBlur =>

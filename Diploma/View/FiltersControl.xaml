@@ -44,7 +44,8 @@
         <StackPanel Visibility="{Binding SelectedFilter, Converter={StaticResource EqualityToVisibilityConverter}, ConverterParameter={x:Static model:OperationType.Contrast}}">
             <Label Content="Фактор" />
             <Slider
-                Maximum="2"
+                IsSnapToTickEnabled="True"
+                Maximum="10"
                 Minimum="0"
                 TickFrequency="0.5"
                 x:Name="ContrastFactorSlider" />
@@ -55,7 +56,7 @@
             <Label Content="Размер ядра" />
             <Slider
                 IsSnapToTickEnabled="True"
-                Maximum="10"
+                Maximum="11"
                 Minimum="3"
                 TickFrequency="2"
                 x:Name="GaussianKernelSizeSlider" />
@@ -72,7 +73,7 @@
             <Label Content="Размер ядра" />
             <Slider
                 IsSnapToTickEnabled="True"
-                Maximum="10"
+                Maximum="11"
                 Minimum="3"
                 TickFrequency="2"
                 x:Name="MedianKernelSizeSlider" />

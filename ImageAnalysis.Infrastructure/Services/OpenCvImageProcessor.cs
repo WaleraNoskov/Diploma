@@ -39,9 +39,19 @@ public class OpenCvImageProcessor : IImageProcessor
         if (result is null)
             return Task.FromResult<Result<byte[]>>(Error.OperationFailed("No suitable handler found"));
 
-        var size = result.Rows * result.Cols * result.Channels();
+        var size = result.Rows * result.Cols * result.ElemSize();
         var bytes = new byte[size];
-        System.Runtime.InteropServices.Marshal.Copy(result.Data, bytes, 0, size);
+        Marshal.Copy(result.Data, bytes, 0, size);
+
+        try
+        {
+            src.Dispose();
+            result.Dispose();
+        }
+        catch (Exception exception)
+        {
+            //ignored
+        }
 
         return Task.FromResult<Result<byte[]>>(bytes);
     }
@@ -61,8 +71,8 @@ public class OpenCvImageProcessor : IImageProcessor
                 3 => MatType.CV_8UC3,
                 4 => MatType.CV_8UC4,
                 _ => throw new NotSupportedException($"Channels: {imageData.Channels * imageData.ChannelSize}")
-            }; 
-            
+            };
+
             var gray = src.Channels() == 1 ? src : ApplyGrayscale(src, type);
 
             var binary = new Mat();

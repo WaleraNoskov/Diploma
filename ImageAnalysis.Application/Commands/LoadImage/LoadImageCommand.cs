@@ -26,7 +26,7 @@ public sealed class LoadImageCommandHandler(
     : IRequestHandler<LoadImageCommand, Result<LoadImageResult>>
 {
     private static readonly HashSet<string> SupportedFormats =
-        ["PNG", "JPEG", "JPG", "BMP", "TIFF"];
+        ["PNG", "JPEG", "JPG", "BMP", "TIFF", "TIF"];
 
     public async Task<Result<LoadImageResult>> Handle(
         LoadImageCommand command,
