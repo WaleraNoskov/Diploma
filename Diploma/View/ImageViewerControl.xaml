@@ -8,11 +8,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:diploma="clr-namespace:Diploma.View"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:infrastructure="clr-namespace:Diploma.Infrastructure"
     xmlns:local="clr-namespace:Diploma.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:visualBasic="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <infrastructure:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    </UserControl.Resources>
     <Grid>
         <ScrollViewer
             HorizontalScrollBarVisibility="Auto"
@@ -20,6 +24,14 @@
             x:Name="PART_Scroll">
 
             <Grid>
+                <TextBlock
+                    FontSize="14"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    HorizontalAlignment="Center"
+                    Text="Откройте изображение для начала работы"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding ImageSource, Converter={StaticResource NullToVisibilityConverter}}" />
+
                 <!--  IMAGE  -->
                 <Image
                     RenderTransform="{Binding Transform}"

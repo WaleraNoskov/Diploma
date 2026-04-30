@@ -31,7 +31,7 @@
             </ListView.ItemTemplate>
         </ListView>
         <Button
-            Command="Undo"
+            Command="{Binding UndoAsyncCommand}"
             Content="Отменить"
             Grid.Row="2"
             HorizontalAlignment="Right" />

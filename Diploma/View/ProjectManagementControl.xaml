@@ -10,7 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="clr-namespace:Diploma.ViewModel"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Top">
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
         <Button
             Command="{Binding OpenFileCommand}"
             Content="Открыть"
@@ -18,9 +18,8 @@
         <TextBlock
             FontSize="14"
             FontWeight="SemiBold"
-            Grid.Column="1"
             Margin="8,0,0,0"
             Text="{Binding ProjectName}"
             VerticalAlignment="Center" />
-    </Grid>
+    </StackPanel>
 </UserControl>
