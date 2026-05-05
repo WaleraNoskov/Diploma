@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -29,9 +31,9 @@ public class OverlayVisualHost : FrameworkElement
 
     private void OnDataContextChanged(object o, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
     {
-        if(DataContext is INotifyPropertyChanged vm)
+        if (DataContext is INotifyPropertyChanged vm)
             vm.PropertyChanged += (_, _) => Redraw(true);
-        
+
         Redraw(true);
     }
 
@@ -44,23 +46,43 @@ public class OverlayVisualHost : FrameworkElement
 
         using (var dc = _visual.RenderOpen())
         {
+            var scale = ((MatrixTransform)RenderTransform).Matrix.M11;
+
+            var radius = 4 / scale;
+
+            if (vm.FirstPoint is not null)
+                dc.DrawEllipse(
+                    Brushes.Orange,
+                    null,
+                    new Point(vm.FirstPoint.X, vm.FirstPoint.Y),
+                    radius,
+                    radius);
+
             if (vm.IsCursorVisible)
-            {
-                var scale = ((MatrixTransform)RenderTransform).Matrix.M11;
-
-                double radius = 4 / scale;
-
                 dc.DrawEllipse(
                     Brushes.Red,
                     null,
                     vm.CursorPosition,
                     radius,
                     radius);
+
+            if (vm.FirstPoint is not null && vm.IsCursorVisible)
+            {
+                var from = new Point(vm.FirstPoint.X, vm.FirstPoint.Y);
+                var to = new Point(vm.CursorPosition.X, vm.CursorPosition.Y);
+                dc.DrawText(new FormattedText($"{Math.Round((from - to).Length)} px",
+                        CultureInfo.CurrentCulture,
+                        FlowDirection.LeftToRight,
+                        new Typeface("Verdana"),
+                        12,
+                        Brushes.Orange),
+                    from - (from - to) / 2);
+                dc.DrawLine(new Pen(Brushes.Orange, 2), from, to);
             }
 
             if (!redrawMeasurementsAndRoi)
                 return;
-            
+
             // Рисуем прозрачный фон, если нужно, чтобы контрол имел физический размер, 
             // но так как IsHitTestVisible="False", это не перекроет мышь.
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ActualWidth, ActualHeight));
@@ -71,7 +93,16 @@ public class OverlayVisualHost : FrameworkElement
 
             foreach (var m in vm.Measurements)
             {
-                dc.DrawLine(pen, new Point(m.From.X, m.From.Y), new Point(m.To.X, m.To.Y));
+                var from = new Point(m.From.X, m.From.Y);
+                var to = new Point(m.To.X, m.To.Y);
+                dc.DrawLine(pen, from, to);
+                dc.DrawText(new FormattedText($"{Math.Round((from - to).Length)} px",
+                        CultureInfo.CurrentCulture,
+                        FlowDirection.LeftToRight,
+                        new Typeface("Verdana"),
+                        12,
+                        Brushes.Lime),
+                    from - (from - to) / 2);
             }
         }
     }

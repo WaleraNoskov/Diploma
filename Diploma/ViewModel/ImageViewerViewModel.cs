@@ -26,7 +26,6 @@ public class ImageViewerViewModel : BaseViewModel
 {
     private readonly IMediator _mediator;
     private readonly IDialogService _dialogService;
-    private PixelPoint? _firstPoint;
     private Guid? _currentSessionId;
     private Matrix _matrix = Matrix.Identity;
 
@@ -89,6 +88,12 @@ public class ImageViewerViewModel : BaseViewModel
         set => SetField(ref field, value);
     }
 
+    public PixelPoint? FirstPoint
+    {
+        get;
+        private set => SetField(ref field, value);
+    }
+
     public MatrixTransform PanTransform { get; } = new();
 
     public MatrixTransform Transform { get; } = new();
@@ -121,18 +126,18 @@ public class ImageViewerViewModel : BaseViewModel
         if (!_currentSessionId.HasValue || parameter is not PixelPoint pixelPoint)
             return;
 
-        if (_firstPoint is null)
+        if (FirstPoint is null)
         {
-            _firstPoint = pixelPoint;
+            FirstPoint = pixelPoint;
             return;
         }
 
-        var command = new TakeMeasurementCommand(_currentSessionId.Value, _firstPoint.ToDto(), pixelPoint.ToDto());
+        var command = new TakeMeasurementCommand(_currentSessionId.Value, FirstPoint.ToDto(), pixelPoint.ToDto());
         var result = await _mediator.Send(command);
         if (result.IsFailure)
             _dialogService.ShowError(result.Error.Code);
 
-        _firstPoint = null;
+        FirstPoint = null;
     }
 
     private bool CanTakeMeasurementAsyncCommandExecute(object parameter) => true;
