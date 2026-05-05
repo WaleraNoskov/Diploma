@@ -46,9 +46,10 @@ public class OverlayVisualHost : FrameworkElement
 
         using (var dc = _visual.RenderOpen())
         {
-            var scale = ((MatrixTransform)RenderTransform).Matrix.M11;
 
-            var radius = 4 / scale;
+            var scale = vm.Scale;
+
+            var radius = 2 / scale;
 
             if (vm.FirstPoint is not null)
                 dc.DrawEllipse(
@@ -74,10 +75,10 @@ public class OverlayVisualHost : FrameworkElement
                         CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight,
                         new Typeface("Verdana"),
-                        12,
+                        16 / scale,
                         Brushes.Orange),
                     from - (from - to) / 2);
-                dc.DrawLine(new Pen(Brushes.Orange, 2), from, to);
+                dc.DrawLine(new Pen(Brushes.Orange, 1 / scale), from, to);
             }
 
             if (!redrawMeasurementsAndRoi)
@@ -87,7 +88,7 @@ public class OverlayVisualHost : FrameworkElement
             // но так как IsHitTestVisible="False", это не перекроет мышь.
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ActualWidth, ActualHeight));
 
-            var pen = new Pen(Brushes.Lime, 2);
+            var pen = new Pen(Brushes.Lime, 1 / scale);
             // Чтобы толщина линии не менялась при зуме, можно сделать так:
             // pen.Thickness = 2 / ((MatrixTransform)RenderTransform).Matrix.M11;
 
@@ -100,7 +101,7 @@ public class OverlayVisualHost : FrameworkElement
                         CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight,
                         new Typeface("Verdana"),
-                        12,
+                        16 / scale,
                         Brushes.Lime),
                     from - (from - to) / 2);
             }
