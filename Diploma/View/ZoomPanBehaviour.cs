@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using Diploma.ViewModel;
 using ImageAnalysis.Domain.ValueObjects;
 using Microsoft.Xaml.Behaviors;
@@ -11,8 +12,8 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
     public ImageViewerViewModel ViewModel
         => AssociatedObject.DataContext as ImageViewerViewModel;
 
-    private ScrollViewer _scroll;
-    private Image _image;
+    private ScrollViewer? _scroll;
+    private Image? _image;
     private bool _isDragging;
     private Point? _mouseDownPoint;
     private Point? _lastScrolling;
@@ -81,7 +82,14 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
 
     private void OnMove(object sender, MouseEventArgs e)
     {
-        if (_lastScrolling == null || _scroll == null) return;
+        var pos = e.GetPosition(AssociatedObject);
+        var imagePoint = ViewModel.ScreenToImage(pos);
+        
+        ViewModel.CursorPosition = imagePoint;
+        ViewModel.IsCursorVisible = true;
+        
+        if (_lastScrolling == null || _scroll == null) 
+            return;
 
         var current = e.GetPosition(_scroll);
         var delta = current - _lastScrolling.Value;

@@ -24,26 +24,43 @@ public class OverlayVisualHost : FrameworkElement
 
         // Перерисовываем, когда меняется DataContext или размеры
         DataContextChanged += OnDataContextChanged;
-        SizeChanged += (_, _) => Redraw();
+        SizeChanged += (_, _) => Redraw(true);
     }
 
     private void OnDataContextChanged(object o, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
     {
         if(DataContext is INotifyPropertyChanged vm)
-            vm.PropertyChanged += (_, _) => Redraw();
+            vm.PropertyChanged += (_, _) => Redraw(true);
         
-        Redraw();
+        Redraw(true);
     }
 
     protected override int VisualChildrenCount => _visuals.Count;
     protected override Visual GetVisualChild(int index) => _visuals[index];
 
-    public void Redraw()
+    public void Redraw(bool redrawMeasurementsAndRoi)
     {
         if (DataContext is not ImageViewerViewModel vm) return;
 
         using (var dc = _visual.RenderOpen())
         {
+            if (vm.IsCursorVisible)
+            {
+                var scale = ((MatrixTransform)RenderTransform).Matrix.M11;
+
+                double radius = 4 / scale;
+
+                dc.DrawEllipse(
+                    Brushes.Red,
+                    null,
+                    vm.CursorPosition,
+                    radius,
+                    radius);
+            }
+
+            if (!redrawMeasurementsAndRoi)
+                return;
+            
             // Рисуем прозрачный фон, если нужно, чтобы контрол имел физический размер, 
             // но так как IsHitTestVisible="False", это не перекроет мышь.
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, ActualWidth, ActualHeight));

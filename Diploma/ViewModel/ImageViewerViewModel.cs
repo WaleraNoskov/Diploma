@@ -77,6 +77,18 @@ public class ImageViewerViewModel : BaseViewModel
         set => SetField(ref field, value);
     } = 1.0;
 
+    public Point CursorPosition
+    {
+        get;
+        set => SetField(ref field, value);
+    }
+
+    public bool IsCursorVisible
+    {
+        get;
+        set => SetField(ref field, value);
+    }
+
     public MatrixTransform PanTransform { get; } = new();
 
     public MatrixTransform Transform { get; } = new();
