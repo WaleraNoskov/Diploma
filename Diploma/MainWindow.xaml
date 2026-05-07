@@ -36,7 +36,17 @@
             Grid.Row="0"
             Margin="0,12"
             Style="{StaticResource FloatingWidgetStyle}">
-            <view:ProjectManagementControl DataContext="{Binding ProjectManagementViewModel}" />
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <view:ProjectManagementControl
+                    DataContext="{Binding ProjectManagementViewModel}"
+                    Grid.Column="0"
+                    VerticalAlignment="Center" />
+                <Border Background="Transparent" Grid.Column="1" />
+                <view:InstrumentSelectionControl
+                    DataContext="{Binding ImageViewerViewModel}"
+                    Grid.Column="2"
+                    VerticalAlignment="Center" />
+            </Grid>
         </Border>
         <Border
             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"

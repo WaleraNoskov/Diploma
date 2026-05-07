@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
+using Diploma.Contracts;
 using Diploma.ViewModel;
 using ImageAnalysis.Application.Queries;
 using ImageAnalysis.Domain.Entities;
@@ -46,7 +47,6 @@ public class OverlayVisualHost : FrameworkElement
 
         using (var dc = _visual.RenderOpen())
         {
-
             var scale = vm.Scale;
 
             var radius = 2 / scale;
@@ -67,7 +67,7 @@ public class OverlayVisualHost : FrameworkElement
                     radius,
                     radius);
 
-            if (vm.FirstPoint is not null && vm.IsCursorVisible)
+            if (vm.FirstPoint is not null && vm.IsCursorVisible && vm.CurrentInstrument == Instrument.Measurement)
             {
                 var from = new Point(vm.FirstPoint.X, vm.FirstPoint.Y);
                 var to = new Point(vm.CursorPosition.X, vm.CursorPosition.Y);
@@ -79,6 +79,15 @@ public class OverlayVisualHost : FrameworkElement
                         Brushes.Orange),
                     from - (from - to) / 2);
                 dc.DrawLine(new Pen(Brushes.Orange, 1 / scale), from, to);
+            }
+            
+            if (vm.FirstPoint is not null && vm.IsCursorVisible && vm.CurrentInstrument == Instrument.RegionOfInterest)
+            {
+                var from = new Point(vm.FirstPoint.X, vm.FirstPoint.Y);
+                var to = new Point(vm.CursorPosition.X, vm.CursorPosition.Y);
+                dc.DrawRectangle(Brushes.Transparent,
+                    new Pen(Brushes.Orange, 1 / scale),
+                    new Rect(from, to));
             }
 
             if (!redrawMeasurementsAndRoi)
@@ -104,6 +113,16 @@ public class OverlayVisualHost : FrameworkElement
                         16 / scale,
                         Brushes.Lime),
                     from - (from - to) / 2);
+            }
+
+            foreach (var roi in vm.RegionOfInterests)
+            {
+                var from = new Point(roi.Bounds.TopLeft.X, roi.Bounds.TopLeft.Y);
+                var to = new Point(roi.Bounds.BottomRight.X, roi.Bounds.BottomRight.Y);
+                
+                dc.DrawRectangle(Brushes.Transparent,
+                    new Pen(Brushes.Lime, 1 / scale),
+                    new Rect(from, to));
             }
         }
     }

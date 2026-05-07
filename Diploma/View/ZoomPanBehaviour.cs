@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Diploma.Contracts;
 using Diploma.ViewModel;
 using ImageAnalysis.Domain.ValueObjects;
 using Microsoft.Xaml.Behaviors;
@@ -69,8 +70,10 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
     private void OnUp(object sender, MouseButtonEventArgs e)
     {
         if (!_isDragging && _lastImage is not null)
-            ViewModel.TakeMeasurementAsyncCommand.Execute(new PixelPoint((int)_lastImage.Value.X, 
-                (int)_lastImage.Value.Y));
+        {
+            var point = new PixelPoint((int)_lastImage.Value.X, (int)_lastImage.Value.Y);
+            ViewModel.TakeInstrumentPointAsyncCommand.Execute(point);
+        }
 
         _isDragging = false;
         _mouseDownPoint = null;
@@ -84,11 +87,11 @@ public class ZoomPanBehavior : Behavior<FrameworkElement>
     {
         var pos = e.GetPosition(AssociatedObject);
         var imagePoint = ViewModel.ScreenToImage(pos);
-        
+
         ViewModel.CursorPosition = imagePoint;
-        ViewModel.IsCursorVisible = true;
-        
-        if (_lastScrolling == null || _scroll == null) 
+        ViewModel.IsCursorVisible = ViewModel.CurrentInstrument != Instrument.None;
+
+        if (_lastScrolling == null || _scroll == null)
             return;
 
         var current = e.GetPosition(_scroll);

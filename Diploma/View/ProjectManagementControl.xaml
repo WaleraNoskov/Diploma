@@ -20,6 +20,7 @@
             FontWeight="SemiBold"
             Margin="8,0,0,0"
             Text="{Binding ProjectName}"
+            TextWrapping="WrapWithOverflow"
             VerticalAlignment="Center" />
     </StackPanel>
 </UserControl>

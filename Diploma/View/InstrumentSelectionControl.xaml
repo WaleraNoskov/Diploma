@@ -1,0 +1,43 @@
+﻿<UserControl
+    d:DataContext="{d:DesignInstance viewModel:ImageViewerViewModel}"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    mc:Ignorable="d"
+    x:Class="Diploma.View.InstrumentSelectionControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:contracts="clr-namespace:Diploma.Contracts"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:infrastructure="clr-namespace:Diploma.Infrastructure"
+    xmlns:local="clr-namespace:Diploma.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="clr-namespace:Diploma.ViewModel"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <infrastructure:BoolToEqualityConverter x:Key="BoolToEqualityConverter" />
+        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Margin" Value="4,0" />
+        </Style>
+    </UserControl.Resources>
+    <UniformGrid Rows="1">
+        <RadioButton
+            Command="{Binding SetInstrumentCommandCommand}"
+            CommandParameter="{x:Static contracts:Instrument.None}"
+            IsChecked="{Binding CurrentInstrument, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static contracts:Instrument.None}, Mode=OneWay}">
+            <TextBlock Text="Просмотр" />
+        </RadioButton>
+        <RadioButton
+            Command="{Binding SetInstrumentCommandCommand}"
+            CommandParameter="{x:Static contracts:Instrument.Measurement}"
+            IsChecked="{Binding CurrentInstrument, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static contracts:Instrument.Measurement}, Mode=OneWay}">
+            <TextBlock Text="Линейка" />
+        </RadioButton>
+        <RadioButton
+            Command="{Binding SetInstrumentCommandCommand}"
+            CommandParameter="{x:Static contracts:Instrument.RegionOfInterest}"
+            IsChecked="{Binding CurrentInstrument, Converter={StaticResource BoolToEqualityConverter}, ConverterParameter={x:Static contracts:Instrument.RegionOfInterest}, Mode=OneWay}">
+            <TextBlock Text="ROI" />
+        </RadioButton>
+    </UniformGrid>
+</UserControl>

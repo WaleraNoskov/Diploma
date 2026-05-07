@@ -7,8 +7,10 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Contracts;
+using Diploma.Contracts;
 using Diploma.Contracts.Events;
 using Diploma.Mvvm;
+using ImageAnalysis.Application.Commands.SelectRoi;
 using ImageAnalysis.Application.Commands.TakeMeasurement;
 using ImageAnalysis.Application.Dtos;
 using ImageAnalysis.Application.Queries;
@@ -34,8 +36,10 @@ public class ImageViewerViewModel : BaseViewModel
         _mediator = mediator;
         _dialogService = dialogService;
 
-        TakeMeasurementAsyncCommand =
-            new AsyncRelayCommand(OnTakeMeasurementAsyncCommandExecuted, CanTakeMeasurementAsyncCommandExecute);
+        TakeInstrumentPointAsyncCommand =
+            new AsyncRelayCommand(TakeInstrumentPointAsyncCommandExecuted, CanTakeInstrumentPointAsyncCommandExecute);
+        SetInstrumentCommandCommand =
+            new RelayCommand(OnSetInstrumentCommandCommandExecuted, CanSetInstrumentCommandCommandExecute);
 
         WeakReferenceMessenger.Default.Register<NewSessionOpened>(this, OnNewSessionOpened);
         WeakReferenceMessenger.Default.Register<NewSessionNotification>(this, OnNewSessionNotification);
@@ -51,6 +55,8 @@ public class ImageViewerViewModel : BaseViewModel
     }
 
     public ObservableCollection<MeasurementDto> Measurements { get; } = new();
+
+    public ObservableCollection<RegionOfInterestDto> RegionOfInterests { get; } = new();
 
     /// <summary> 
     /// Gets current zoom. 
@@ -94,6 +100,12 @@ public class ImageViewerViewModel : BaseViewModel
         private set => SetField(ref field, value);
     }
 
+    public Instrument CurrentInstrument
+    {
+        get;
+        private set => SetField(ref field, value);
+    }
+
     public MatrixTransform PanTransform { get; } = new();
 
     public MatrixTransform Transform { get; } = new();
@@ -119,11 +131,13 @@ public class ImageViewerViewModel : BaseViewModel
 
     #region TakeMeasurementAsyncCommand
 
-    public IAsyncCommand TakeMeasurementAsyncCommand { get; set; }
+    public IAsyncCommand TakeInstrumentPointAsyncCommand { get; set; }
 
-    private async Task OnTakeMeasurementAsyncCommandExecuted(object parameter)
+    private async Task TakeInstrumentPointAsyncCommandExecuted(object parameter)
     {
-        if (!_currentSessionId.HasValue || parameter is not PixelPoint pixelPoint)
+        if (!_currentSessionId.HasValue
+            || parameter is not PixelPoint pixelPoint
+            || CurrentInstrument == Instrument.None)
             return;
 
         if (FirstPoint is null)
@@ -132,15 +146,43 @@ public class ImageViewerViewModel : BaseViewModel
             return;
         }
 
-        var command = new TakeMeasurementCommand(_currentSessionId.Value, FirstPoint.ToDto(), pixelPoint.ToDto());
-        var result = await _mediator.Send(command);
-        if (result.IsFailure)
-            _dialogService.ShowError(result.Error.Code);
+        if (CurrentInstrument == Instrument.Measurement)
+        {
+            var command = new TakeMeasurementCommand(_currentSessionId.Value, FirstPoint.ToDto(), pixelPoint.ToDto());
+            var result = await _mediator.Send(command);
+            if (result.IsFailure)
+                _dialogService.ShowError(result.Error.Code);
+        }
+        else if (CurrentInstrument == Instrument.RegionOfInterest)
+        {
+            var bounds = new RoiBounds(FirstPoint, pixelPoint.X - FirstPoint.X, pixelPoint.Y - FirstPoint.Y);
+            var command = new SelectRoiCommand(_currentSessionId.Value, bounds.ToDto());
+            Result<RegionOfInterestDto> result = await _mediator.Send(command);
+            if (result.IsFailure)
+                _dialogService.ShowError(result.Error.Code);
+        }
 
         FirstPoint = null;
     }
 
-    private bool CanTakeMeasurementAsyncCommandExecute(object parameter) => true;
+    private bool CanTakeInstrumentPointAsyncCommandExecute(object parameter) => true;
+
+    #endregion
+
+    #region SetInstrumentCommand
+
+    public ICommand SetInstrumentCommandCommand { get; set; }
+
+    private void OnSetInstrumentCommandCommandExecuted(object parameter)
+    {
+        if (parameter is not Instrument instrument)
+            return;
+
+        FirstPoint = null;
+        CurrentInstrument = instrument;
+    }
+
+    private bool CanSetInstrumentCommandCommandExecute(object parameter) => true;
 
     #endregion
 
@@ -196,16 +238,24 @@ public class ImageViewerViewModel : BaseViewModel
         if (!_currentSessionId.HasValue)
             return;
 
-        var result = await _mediator.Send(new GetMeasurementsQuery(_currentSessionId.Value));
-
-        if (result.IsFailure)
+        var measurementsResult = await _mediator.Send(new GetMeasurementsQuery(_currentSessionId.Value));
+        if (measurementsResult.IsFailure)
             return;
 
         Measurements.Clear();
-        foreach (var m in result.Value)
+        foreach (var m in measurementsResult.Value)
             Measurements.Add(m);
 
+        var roisResult = await _mediator.Send(new GetRegionsQuery(_currentSessionId.Value));
+        if (roisResult.IsFailure)
+            return;
+
+        RegionOfInterests.Clear();
+        foreach (var r in roisResult.Value)
+            RegionOfInterests.Add(r);
+
         OnPropertyChanged(nameof(Measurements));
+        OnPropertyChanged(nameof(RegionOfInterests));
     }
 
     private async void OnNewSessionOpened(object recipient, NewSessionOpened message)
@@ -231,7 +281,9 @@ public class ImageViewerViewModel : BaseViewModel
                 or OperationUndoneEvent
                 or SessionResetEvent
                 or MeasurementTakenEvent
-                or MeasurementRemovedEvent))
+                or MeasurementRemovedEvent
+                or RoiSelectedEvent
+                or RoiRemovedEvent))
                 return;
 
             await Reload();
